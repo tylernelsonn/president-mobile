@@ -4,7 +4,7 @@ A phone companion app for the **Presidente** board game. One scorekeeper runs it
 at the table. It replaces the paper scoresheet and tracks:
 
 - **Turns.** Tap the dice total. The app subtracts it, handles the 7 rule, and offers only the moves the rules allow.
-- **Who won each state.** A live electoral map colored by each player's piece color, plus a full state-by-state list.
+- **Who won each state.** On the Play screen: a live electoral map colored by each player's piece color, plus a full state-by-state list.
 - **Scoreboard.** Votes per player, distance to 270, current state, votes left to roll out, lost turns, stuck status and alliances.
 - **Rounds.** Round end at 51 states, elimination (with tie roll-off), the highest scorer going first, and choosing starting states.
 - **Undo** for any action, **dark mode**, and auto-save so a refresh doesn't lose the game.

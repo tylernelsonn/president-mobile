@@ -12,6 +12,7 @@ const store = {
   history: [],
   tab: 'play',
   selected: null,
+  statesOpen: false,
   sheet: null,
   draft: {
     players: [
@@ -93,7 +94,6 @@ const ICON = {
   theme: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 0 0 16z" fill="currentColor"/></svg>',
   menu: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>',
   dice: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/><circle cx="8.5" cy="8.5" r="1.4" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.4" fill="currentColor"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/></svg>',
-  map: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 6.5 9 4l6 2.5L21 4v13.5L15 20l-6-2.5L3 20z"/><path d="M9 4v13.5M15 6.5V20"/></svg>',
   scores: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 20V11M12 20V4M19 20v-6"/></svg>',
   log: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1" fill="currentColor"/><circle cx="4" cy="12" r="1" fill="currentColor"/><circle cx="4" cy="18" r="1" fill="currentColor"/></svg>',
 };
@@ -127,7 +127,7 @@ function header() {
 }
 
 function tabs() {
-  const t = [['play', 'Play', ICON.dice], ['map', 'Map', ICON.map], ['scores', 'Scores', ICON.scores], ['log', 'Log', ICON.log]];
+  const t = [['play', 'Play', ICON.dice], ['scores', 'Scores', ICON.scores], ['log', 'Log', ICON.log]];
   return `<nav class="tabs" aria-label="Sections">${t.map(([id, label, icon]) =>
     `<button data-act="tab" data-v="${id}" ${store.tab === id ? 'aria-current="page"' : ''}>${icon}${label}</button>`).join('')}</nav>`;
 }
@@ -296,15 +296,16 @@ function playView() {
         <p class="muted" style="margin:0">Draw from the state deck and tap the state on the card. ${esc(p.name)} places a piece there.</p>
         ${cardPicker(g, { initialOnly: true })}
       </div>
-      <div class="show-wide">${mapCard(g)}</div>
+      <div class="stack">${mapCard(g)}${statesCard(g)}</div>
     </section>`;
   }
   if (g.phase === 'play') {
     return `<section class="view split">
       <div class="stack sticky">${turnCard(g)}</div>
       <div class="stack">
-        <div class="show-wide">${mapCard(g)}</div>
+        ${mapCard(g)}
         ${upNext(g)}
+        ${statesCard(g)}
       </div>
     </section>`;
   }
@@ -333,7 +334,7 @@ function roundEndView(g) {
       <div class="queue">${rows}</div>
       ${ctrl}
     </div>
-    ${mapCard(g)}
+    <div class="stack">${mapCard(g)}${statesCard(g)}</div>
   </section>`;
 }
 
@@ -348,7 +349,7 @@ function nextStartView(g) {
       <p class="muted" style="margin:0">${esc(first.name)} has the most votes and goes first. Choose a state you own that connects to where you ended.</p>
       <div class="stack">${opts.map((o, i) => optionButton(o, i, 'start')).join('')}</div>
     </div>
-    ${mapCard(g)}
+    <div class="stack">${mapCard(g)}${statesCard(g)}</div>
   </section>`;
 }
 
@@ -365,24 +366,22 @@ function overView(g) {
       <button class="btn primary" data-act="new">New game</button>
     </div>
     ${mapCard(g)}
+    ${statesCard(g)}
   </section>`;
 }
 
-// ---------- map tab ----------
-function mapView() {
-  const g = store.game;
+// ---------- state-by-state list ----------
+function statesCard(g) {
   const rows = STATE_CODES.map((c) => {
     const o = g.owner[c];
     const p = o ? G.player(g, o) : null;
     return `<tr data-act="select" data-v="${c}"><td>${esc(STATES[c][0])}</td><td>${p ? `<span class="row">${swatch(p)}${esc(p.name)}</span>` : '<span class="muted">Free</span>'}</td><td class="r">${STATES[c][1]}</td></tr>`;
   }).join('');
-  return `<section class="view">
-    ${mapCard(g)}
-    <div class="card">
-      <p class="eyebrow">Who won each state</p>
-      <div style="overflow-x:auto"><table class="states"><tbody>${rows}</tbody></table></div>
-    </div>
-  </section>`;
+  const taken = 51 - G.freeStates(g).length;
+  return `<details class="card states-card" id="states-list" ${store.statesOpen ? 'open' : ''}>
+    <summary><span class="eyebrow" style="margin:0">Who won each state</span><span class="muted">${taken} of 51 taken</span></summary>
+    <div style="overflow-x:auto;margin-top:8px"><table class="states"><tbody>${rows}</tbody></table></div>
+  </details>`;
 }
 
 // ---------- scores tab ----------
@@ -441,7 +440,6 @@ function render() {
   const g = store.game;
   let body;
   if (!g) body = setupView();
-  else if (store.tab === 'map') body = mapView();
   else if (store.tab === 'scores') body = scoresView();
   else if (store.tab === 'log') body = logView();
   else body = playView();
@@ -494,10 +492,14 @@ $app.addEventListener('click', (e) => {
     case 'choose': apply((s) => G.choose(s, s.pending.options[i])); break;
     case 'eliminate': apply((s) => G.eliminate(s, v)); break;
     case 'start': apply((s) => G.chooseStart(s, G.startOptions(s, G.player(s, s.startQueue[0]))[i])); break;
-    case 'select': store.selected = v; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); break;
+    case 'select': store.selected = v; render(); document.querySelector('[data-map]')?.scrollIntoView({ behavior: 'smooth', block: 'center' }); break;
     default: break;
   }
 });
+
+$app.addEventListener('toggle', (e) => {
+  if (e.target.id === 'states-list') store.statesOpen = e.target.open;
+}, true);
 
 $app.addEventListener('input', (e) => {
   const el = e.target;

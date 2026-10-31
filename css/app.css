@@ -93,7 +93,6 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
   .split .sticky { position: sticky; top: 80px; }
   .hide-wide { display: none !important; }
 }
-@media (max-width: 899px) { .show-wide { display: none !important; } }
 
 .card { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px; min-width: 0; }
 .card.flat { box-shadow: none; border: 1px solid var(--line); }
@@ -206,6 +205,10 @@ h3.sub { font-size: 15px; font-weight: 700; margin: 0; }
 .bar::after { content: ""; position: absolute; left: calc(270 / 538 * 100%); top: -4px; bottom: -4px; width: 2px; background: var(--ink); opacity: 0.5; }
 .owned { display: flex; flex-wrap: wrap; gap: 4px; }
 .owned span { font-size: 12px; padding: 2px 7px; border-radius: 6px; background: var(--surface-2); font-weight: 600; }
+details.states-card summary { display: flex; justify-content: space-between; align-items: center; gap: 10px; list-style: none; min-height: 28px; }
+details.states-card summary::-webkit-details-marker { display: none; }
+details.states-card summary::after { content: '▾'; color: var(--muted); margin-left: 4px; }
+details.states-card[open] summary::after { content: '▴'; }
 details summary { cursor: pointer; font-size: 13px; color: var(--muted); font-weight: 600; }
 
 table.states { width: 100%; border-collapse: collapse; font-size: 14px; }
@@ -242,7 +245,7 @@ select.sel { height: 46px; border-radius: 12px; border: 1px solid var(--line); b
   padding-bottom: env(safe-area-inset-bottom, 0px);
   padding-left: max(8px, env(safe-area-inset-left, 0px));
   padding-right: max(8px, env(safe-area-inset-right, 0px));
-  display: grid; grid-template-columns: repeat(4, 1fr);
+  display: grid; grid-template-columns: repeat(3, 1fr);
 }
 .tabs button {
   height: var(--tabbar-h); border: 0; background: transparent; display: grid; place-items: center; align-content: center; gap: 3px;
