@@ -1,4 +1,4 @@
-/* Layout: one-column phone app — sticky header, scrolling view, fixed tab bar. Two columns (play + map) on wide screens. */
+/* Layout: one-column phone app — sticky header, map on top, then turn controls, fixed tab bar. Wide screens: map left, controls right. */
 :root {
   --bg: #e9edf3;
   --surface: #ffffff;
@@ -89,7 +89,10 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .view { display: grid; gap: 16px; align-content: start; min-width: 0; }
 .split { display: grid; gap: 16px; }
 @media (min-width: 900px) {
-  .split { grid-template-columns: minmax(0, 420px) minmax(0, 1fr); align-items: start; }
+  .split { grid-template-columns: minmax(0, 1fr) minmax(0, 420px); grid-template-areas: "map ctrl" "rest ctrl"; align-items: start; }
+  .split .a-map { grid-area: map; }
+  .split .a-ctrl { grid-area: ctrl; }
+  .split .a-rest { grid-area: rest; }
   .split .sticky { position: sticky; top: 80px; }
   .hide-wide { display: none !important; }
 }

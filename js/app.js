@@ -280,34 +280,33 @@ function mapCard(g, extra = '') {
 
 function selectedInfo(g) {
   const c = store.selected;
-  if (!c) return '<p class="muted" style="margin:0;font-size:13px">Tap a state to see who holds it.</p>';
+  if (!c) return '';
   const o = g.owner[c];
   const owner = o ? G.player(g, o) : null;
   return `<div class="row">${owner ? swatch(owner) : '<span class="swatch" style="background:var(--free)"></span>'}<span class="grow"><b>${esc(stateName(c))}</b> · ${ev(c)} votes</span><span class="muted">${owner ? `Won by ${esc(owner.name)}` : 'Free'}</span></div>`;
+}
+
+// Map on top (phone) / wide on the left (tablet); controls under it / sticky on the right.
+function layout(g, ctrl, rest = '') {
+  return `<section class="view split">
+    <div class="a-map">${mapCard(g)}</div>
+    <div class="a-ctrl sticky">${ctrl}</div>
+    <div class="a-rest stack">${rest}${statesCard(g)}</div>
+  </section>`;
 }
 
 function playView() {
   const g = store.game;
   if (g.phase === 'initial') {
     const p = G.current(g);
-    return `<section class="view split">
-      <div class="card stack sticky">
+    return layout(g, `<div class="card stack">
         <div class="turn-head">${swatch(p, 'lg')}<div class="grow"><p class="eyebrow" style="margin:0">Opening draw · ${((g.turn - g.firstTurn + g.order.length) % g.order.length) + 1} of ${g.order.length}</p><h2 class="title">${esc(p.name)}</h2></div></div>
         <p class="muted" style="margin:0">Draw from the state deck and tap the state on the card. ${esc(p.name)} places a piece there.</p>
         ${cardPicker(g, { initialOnly: true })}
-      </div>
-      <div class="stack">${mapCard(g)}${statesCard(g)}</div>
-    </section>`;
+      </div>`);
   }
   if (g.phase === 'play') {
-    return `<section class="view split">
-      <div class="stack sticky">${turnCard(g)}</div>
-      <div class="stack">
-        ${mapCard(g)}
-        ${upNext(g)}
-        ${statesCard(g)}
-      </div>
-    </section>`;
+    return layout(g, turnCard(g), upNext(g));
   }
   if (g.phase === 'roundEnd') return roundEndView(g);
   if (g.phase === 'nextStart') return nextStartView(g);
@@ -326,31 +325,25 @@ function roundEndView(g) {
     ? `<p class="notice">Tie for last place. Tied players roll, and the lowest roll is eliminated. Tap who rolled lowest.</p>
        <div class="stack">${tied.map((id) => `<button class="btn danger block" data-act="eliminate" data-v="${id}">${esc(G.player(g, id).name)} rolled lowest</button>`).join('')}</div>`
     : `<button class="btn danger block" data-act="eliminate" data-v="${tied[0]}">Eliminate ${lowName}</button>`;
-  return `<section class="view split">
-    <div class="card stack sticky">
+  return layout(g, `<div class="card stack">
       <p class="eyebrow">Round ${g.round} is over</p>
       <h2 class="title">All 51 states are taken</h2>
       <p class="muted" style="margin:0">Votes counted. The lowest total is eliminated and their states go back on the board.</p>
       <div class="queue">${rows}</div>
       ${ctrl}
-    </div>
-    <div class="stack">${mapCard(g)}${statesCard(g)}</div>
-  </section>`;
+    </div>`);
 }
 
 function nextStartView(g) {
   const p = G.player(g, g.startQueue[0]);
   const opts = G.startOptions(g, p);
   const first = G.player(g, g.order[g.turn]);
-  return `<section class="view split">
-    <div class="card stack sticky">
+  return layout(g, `<div class="card stack">
       <p class="eyebrow">Round ${g.round + 1} setup</p>
       <div class="turn-head">${swatch(p, 'lg')}<div class="grow"><h2 class="title">${esc(p.name)}</h2><div class="loc">ended in ${esc(locName(p.loc))}</div></div></div>
       <p class="muted" style="margin:0">${esc(first.name)} has the most votes and goes first. Choose a state you own that connects to where you ended.</p>
       <div class="stack">${opts.map((o, i) => optionButton(o, i, 'start')).join('')}</div>
-    </div>
-    <div class="stack">${mapCard(g)}${statesCard(g)}</div>
-  </section>`;
+    </div>`);
 }
 
 function overView(g) {
