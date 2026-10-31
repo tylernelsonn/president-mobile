@@ -66,9 +66,9 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
   padding-right: max(16px, env(safe-area-inset-right, 0px));
   display: flex; align-items: center; gap: 10px;
 }
-.brand { font: 900 26px/1 var(--font-display); letter-spacing: 0.02em; text-transform: uppercase; margin: 0; flex: 1; min-width: 0; }
-.brand small { font: 600 11px/1 var(--font-body); letter-spacing: 0.08em; opacity: 0.7; margin-left: 8px; text-transform: uppercase; white-space: nowrap; }
-@media (max-width: 420px) { .icon-btn .lbl-text { display: none; } .brand { font-size: 23px; } }
+.brand { font: 900 26px/1 var(--font-display); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.02em; text-transform: uppercase; margin: 0; flex: 1; min-width: 0; }
+.brand small { display: block; font: 600 11px/1 var(--font-body); letter-spacing: 0.08em; opacity: 0.7; margin-top: 4px; text-transform: uppercase; white-space: nowrap; }
+@media (max-width: 420px) { .icon-btn .lbl-text { display: none; } .brand { font-size: 23px; } .top { gap: 2px; } .top .icon-btn { min-width: 40px; padding: 0 8px; } }
 .icon-btn {
   border: 0; background: transparent; color: inherit; border-radius: 10px;
   min-width: 44px; height: 40px; padding: 0 10px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
