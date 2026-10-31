@@ -85,13 +85,20 @@ test('backtracking through owned states to reach a free state', () => {
   let s = G.newGame([{ name: 'Zak', color: 'a' }, { name: 'Syd', color: 'b' }, { name: 'Ann', color: 'c' }], 'p0');
   s = G.initialDraw(s, 'ME'); s = G.initialDraw(s, 'CA'); s = G.initialDraw(s, 'TX');
   s.owner.NH = 'p0';
-  Object.keys(STATES).filter((c) => !s.owner[c] && !['VT', 'NY'].includes(c)).forEach((c, i) => { s.owner[c] = i % 2 ? 'p1' : 'p2'; });
+  // Share the rest evenly so nobody is mathematically eliminated. Zak gets nothing next to NY/VT.
+  const nearby = ['MA', 'CT', 'NJ', 'PA'];
+  Object.keys(STATES).filter((c) => !s.owner[c] && !['VT', 'NY'].includes(c)).sort((a, b) => ev(b) - ev(a)).forEach((c) => {
+    const ids = (nearby.includes(c) ? ['p1', 'p2'] : ['p0', 'p1', 'p2']).sort((x, y) => G.votes(s, x) - G.votes(s, y));
+    s.owner[c] = ids[0];
+  });
+  assert.equal(G.mathematicallyEliminated(s), null);
   // Zak rolls out of Maine: no free neighbour, but NH (owned) leads to VT.
+  const before = G.votes(s, 'p0');
   s = G.roll(s, 4);
   assert.deepEqual(s.pending.options, [{ type: 'return', code: 'NH' }]);
   s = G.choose(s, { type: 'return', code: 'NH' });
   assert.equal(G.player(s, 'p0').remaining, 4);
-  assert.equal(G.votes(s, 'p0'), ev('ME') + ev('NH'));
+  assert.equal(G.votes(s, 'p0'), before); // moving back in adds no votes
   s = G.roll(s, 2); s = G.roll(s, 2);
   s = G.roll(s, 5);
   assert.deepEqual(s.pending.options.map((o) => o.code), ['VT']);
@@ -187,4 +194,30 @@ test('fuzz: random games always finish with a valid result', () => {
     finished++;
   }
   assert.equal(finished, 300);
+});
+
+test('round ends early when a player is mathematically eliminated', () => {
+  let s = G.newGame([{ name: 'A', color: 'a' }, { name: 'B', color: 'b' }, { name: 'C', color: 'c' }], 'p0');
+  s = G.initialDraw(s, 'WY'); s = G.initialDraw(s, 'TX'); s = G.initialDraw(s, 'CA');
+  // Free: only Vermont (3) and Rhode Island (4) and Colorado (10).
+  const keep = ['VT', 'RI', 'CO'];
+  Object.keys(STATES).filter((c) => !s.owner[c] && !keep.includes(c))
+    .sort((a, b) => ev(b) - ev(a))
+    .forEach((c) => { s.owner[c] = G.votes(s, 'p1') <= G.votes(s, 'p2') ? 'p1' : 'p2'; });
+  // A has 3 (+17 free = 20), far below B and C, but the check runs at end of a turn.
+  assert.ok(G.mathematicallyEliminated(s));
+  s = G.roll(s, 2);   // A rolls: 1 left in Wyoming, turn ends -> round ends
+  assert.equal(s.phase, 'roundEnd');
+  assert.equal(s.roundEnd.early.id, 'p0');
+  assert.deepEqual(s.roundEnd.tied, ['p0']);
+  assert.equal(G.freeStates(s).length, 3);
+  s = G.eliminate(s, 'p0');
+  assert.equal(s.phase, 'nextStart');
+  assert.equal(G.freeStates(s).length, 4); // Wyoming back on the board
+});
+
+test('no early end while the trailing player could still tie or pass someone', () => {
+  let s = G.newGame([{ name: 'A', color: 'a' }, { name: 'B', color: 'b' }], 'p0');
+  s = G.initialDraw(s, 'WY'); s = G.initialDraw(s, 'VT');
+  assert.equal(G.mathematicallyEliminated(s), null);
 });

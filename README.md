@@ -6,7 +6,7 @@ at the table. It replaces the paper scoresheet and tracks:
 - **Turns.** Tap the dice total. The app subtracts it, handles the 7 rule, and offers only the moves the rules allow.
 - **Who won each state.** On the Play screen: a live electoral map colored by each player's piece color, plus a full state-by-state list.
 - **Scoreboard.** Votes per player, distance to 270, current state, votes left to roll out, lost turns, stuck status and alliances.
-- **Rounds.** Round end at 51 states, elimination (with tie roll-off), the highest scorer going first, and choosing starting states.
+- **Rounds.** Round end at 51 states or as soon as someone can't catch up, elimination (with tie roll-off), the highest scorer going first, and choosing starting states.
 - **Undo** for any action, **dark mode**, and auto-save so a refresh doesn't lose the game.
 
 It's an installable web app (PWA). Open it in your phone's browser and use
@@ -60,5 +60,6 @@ the app does this:
 - **Drawing Mexico or Canada when already allied** means draw again.
 - **Stay Where You Are** resets your current state to full votes and costs 4 turns.
 - **Next round start.** You may start in the state you ended in, an owned state next to it, or an allied country next to it (lose 4 turns). If you ended in a country, you may start in an owned state on its border or in the country (lose 4 turns). You roll out of the chosen state's full votes.
+- **Mathematical elimination ends the round.** After every turn, the app checks whether any player's votes plus every free state's votes are still below every other player's votes. If so, that player can't avoid last place, so the round ends right away and the app shows the round-over screen. Their states go back on the board, and states that were still free stay free for the next round. If the best case would only tie someone, the round keeps going.
 - **270** ends the game the moment someone reaches it.
 - **A 269–269 tie** is announced, and the tiebreaker is played at the table.
