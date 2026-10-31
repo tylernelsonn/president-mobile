@@ -12,6 +12,15 @@ at the table. It replaces the paper scoresheet and tracks:
 It's an installable web app (PWA). Open it in your phone's browser and use
 **Add to Home Screen**. It works offline after the first load.
 
+## Install it
+
+The app is published with GitHub Pages at
+**https://tylernelsonn.github.io/president-mobile/**. Every push to `main` runs
+the tests and redeploys (see `.github/workflows/pages.yml`).
+
+- **iPhone:** open the link in Safari, tap **Share**, then **Add to Home Screen**.
+- **Android:** open the link in Chrome, tap the **⋮** menu, then **Install app** (or **Add to Home screen**).
+
 ## Run it
 
 No build step. Serve the folder with any static server:
