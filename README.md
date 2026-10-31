@@ -1,6 +1,6 @@
-# Presidente Scorekeeper
+# Path to Presidency
 
-A phone companion app for the **Presidente** board game. One scorekeeper runs it
+**Path to Presidency** is a phone companion app for the **Presidente** board game. One scorekeeper runs it
 at the table. It replaces the paper scoresheet and tracks:
 
 - **Turns.** Tap the dice total. The app subtracts it, handles the 7 rule, and offers only the moves the rules allow.

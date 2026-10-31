@@ -1,4 +1,4 @@
-// Presidente scorekeeper UI. Renders from a single store; rules live in game.js.
+// Path to Presidency scorekeeper UI. Renders from a single store; rules live in game.js.
 import * as G from './game.js';
 import { STATES, STATE_CODES, COUNTRIES, PALETTE, ev, stateName, WIN_EV } from './data.js';
 import { renderMap, textOn } from './map.js';
@@ -128,7 +128,7 @@ function header() {
   const g = store.game;
   const sub = g ? (g.phase === 'initial' ? 'Opening draw' : g.phase === 'over' ? 'Final' : `Round ${g.round}`) : 'New game';
   return `<header class="top">
-    <h1 class="brand">Presidente<small>${sub}</small></h1>
+    <h1 class="brand">Path to Presidency<small>${sub}</small></h1>
     ${g ? `<button class="icon-btn" data-act="undo" ${store.history.length ? '' : 'disabled'} aria-label="Undo last action">${ICON.undo}<span class="lbl-text">Undo</span></button>` : ''}
     <button class="icon-btn" data-act="theme" aria-label="Switch theme (now ${getTheme()})">${ICON.theme}</button>
     ${g ? `<button class="icon-btn" data-act="menu" aria-label="Game menu">${ICON.menu}</button>` : ''}
