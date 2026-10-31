@@ -185,7 +185,7 @@ function cardPicker(g, { initialOnly = false } = {}) {
     const o = g.owner[c];
     const owner = o ? G.player(g, o) : null;
     const taken = initialOnly && o;
-    return `<button data-act="${initialOnly ? 'initial' : 'draw'}" data-v="${c}" data-name="${esc(STATES[c][0].toLowerCase())}" class="${o && o !== p.id ? 'taken' : ''}" ${taken ? 'disabled' : ''}>
+    return `<button data-act="${initialOnly ? 'initial' : 'draw'}" data-v="${c}" data-name="${esc(STATES[c][0].toLowerCase())} ${c.toLowerCase()}" class="${o && o !== p.id ? 'taken' : ''}" ${taken ? 'disabled' : ''}>
       ${owner ? swatch(owner) : '<span class="swatch" style="background:var(--free)"></span>'}
       <span class="n">${esc(STATES[c][0])}</span><span class="v">${STATES[c][1]}</span></button>`;
   }).join('');
@@ -197,6 +197,7 @@ function cardPicker(g, { initialOnly = false } = {}) {
     ${specials}
     <input id="card-search" class="search" type="search" placeholder="Find the state on the card…" autocomplete="off" data-input="search" aria-label="Search states">
     <div class="cards" id="cards">${cards}</div>
+    <p id="cards-none" class="muted" style="margin:0" hidden>No state matches that search.</p>
   </div>`;
 }
 
@@ -408,7 +409,7 @@ function scoresView() {
         <div class="grow"><b>${esc(p.name)}</b><div class="muted" style="font-size:13px">${esc(where)}</div></div>
         <div class="votes">${v}<small>${p.out ? 'at elimination' : g.winner === p.id ? 'President' : `${Math.max(0, WIN_EV - v)} to win`}</small></div>
       </div>
-      ${p.out ? '' : `<div class="bar" aria-label="${v} of 270 votes"><i style="width:${(v / 538) * 100}%;background:${p.color}"></i></div>`}
+      ${p.out ? '' : `<div class="bar" aria-label="${v} of 270 votes"><i style="width:${Math.min(1, v / WIN_EV) * 100}%;background:${p.color}"></i></div>`}
       <div class="row wrap">${statusChips(g, p)}</div>
       ${owned.length ? `<details><summary>${owned.length} state${owned.length > 1 ? 's' : ''} won</summary><div class="owned" style="margin-top:8px">${owned.map((c) => `<span>${esc(STATES[c][0])} ${ev(c)}</span>`).join('')}</div></details>` : ''}
     </div>`;
@@ -417,7 +418,7 @@ function scoresView() {
     <div class="card">
       <p class="eyebrow">${g.phase === 'over' ? 'Final scoreboard' : `Round ${g.round} · ${taken} of 51 states taken`}</p>
       <h2 class="title">Scoreboard</h2>
-      <p class="muted" style="margin:4px 0 0;font-size:13px">270 to win. The line on each bar marks 270.</p>
+      <p class="muted" style="margin:4px 0 0;font-size:13px">270 to win. A full bar means 270 votes.</p>
       <div>${act.map(row).join('')}${out.map((p) => row(p, 0)).join('')}</div>
     </div>
   </section>`;
@@ -522,7 +523,13 @@ $app.addEventListener('input', (e) => {
   if (kind === 'first') { store.draft.first = +el.value; save(); }
   if (kind === 'search') {
     const q = el.value.trim().toLowerCase();
-    for (const b of document.querySelectorAll('#cards button')) b.hidden = q && !b.dataset.name.includes(q);
+    let shown = 0;
+    for (const b of document.querySelectorAll('#cards button')) {
+      b.hidden = Boolean(q) && !b.dataset.name.includes(q);
+      if (!b.hidden) shown += 1;
+    }
+    const none = document.getElementById('cards-none');
+    if (none) none.hidden = shown > 0;
   }
 });
 document.addEventListener('keydown', (e) => {
