@@ -296,8 +296,26 @@ function endTurn(s) {
     }
   }
   if (freeStates(s).length === 0) return finishRound(s);
+  const out = mathematicallyEliminated(s);
+  if (out) return finishRound(s, out);
   advance(s);
   return s;
+}
+
+// A player is mathematically eliminated when even winning every free state
+// leaves them below every other player's current votes. Votes are never lost
+// mid-round, so they are certain to finish last and the round ends now.
+export function mathematicallyEliminated(s) {
+  const act = activePlayers(s);
+  if (act.length < 2) return null;
+  const free = freeStates(s).reduce((t, c) => t + ev(c), 0);
+  for (const p of act) {
+    const best = votes(s, p.id) + free;
+    if (act.every((o) => o.id === p.id || best < votes(s, o.id))) {
+      return { id: p.id, votes: votes(s, p.id), free, freeStates: freeStates(s).length };
+    }
+  }
+  return null;
 }
 
 function advance(s) {
@@ -308,7 +326,7 @@ function advance(s) {
   }
 }
 
-function finishRound(s) {
+function finishRound(s, early = null) {
   const act = activePlayers(s);
   const scores = act.map((p) => ({ id: p.id, votes: votes(s, p.id) }));
   if (act.length === 2 && scores.every((x) => x.votes === 269)) {
@@ -320,8 +338,13 @@ function finishRound(s) {
   const low = Math.min(...scores.map((x) => x.votes));
   const tied = scores.filter((x) => x.votes === low).map((x) => x.id);
   s.phase = 'roundEnd';
-  s.roundEnd = { scores, tied };
-  note(s, `Round ${s.round} is over. All 51 states are taken.`);
+  s.roundEnd = { scores, tied, early };
+  if (early) {
+    const p = player(s, early.id);
+    note(s, `Round ${s.round} is over. ${p.name} can't catch up: ${early.votes} votes + ${early.free} still free is less than everyone else.`);
+  } else {
+    note(s, `Round ${s.round} is over. All 51 states are taken.`);
+  }
   return s;
 }
 

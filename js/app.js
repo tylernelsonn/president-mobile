@@ -72,8 +72,17 @@ function apply(fn) {
     const next = fn(store.game);
     store.history.push(store.game);
     if (store.history.length > HISTORY_MAX) store.history.shift();
+    const prevPhase = store.game.phase;
     store.game = next;
     save();
+    if (prevPhase === 'play' && next.phase === 'roundEnd') {
+      // Round just ended: bring the scorekeeper to the round-over notice.
+      store.tab = 'play';
+      render();
+      document.querySelector('.a-ctrl')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      toast(`Round ${next.round} is over`);
+      return;
+    }
     render();
     if (next.notice) toast(next.notice);
   } catch (e) {
@@ -324,11 +333,17 @@ function roundEndView(g) {
   const ctrl = tied.length > 1
     ? `<p class="notice">Tie for last place. Tied players roll, and the lowest roll is eliminated. Tap who rolled lowest.</p>
        <div class="stack">${tied.map((id) => `<button class="btn danger block" data-act="eliminate" data-v="${id}">${esc(G.player(g, id).name)} rolled lowest</button>`).join('')}</div>`
-    : `<button class="btn danger block" data-act="eliminate" data-v="${tied[0]}">Eliminate ${lowName}</button>`;
+    : `<button class="btn danger block" data-act="eliminate" data-v="${tied[0]}">Eliminate ${lowName} and start round ${g.round + 1}</button>`;
+  const early = g.roundEnd.early;
+  const head = early
+    ? `<h2 class="title">${esc(G.player(g, early.id).name)} can't catch up</h2>
+      <div class="notice">Even winning all ${early.freeStates} free state${early.freeStates > 1 ? 's' : ''} (${early.free} votes) would leave ${esc(G.player(g, early.id).name)} at ${early.votes + early.free}, below every other player. The round ends now.</div>
+      <p class="muted" style="margin:0">${esc(G.player(g, early.id).name)}'s states go back on the board. The free states stay free for the next round.</p>`
+    : `<h2 class="title">All 51 states are taken</h2>
+      <p class="muted" style="margin:0">Votes counted. The lowest total is eliminated and their states go back on the board.</p>`;
   return layout(g, `<div class="card stack">
       <p class="eyebrow">Round ${g.round} is over</p>
-      <h2 class="title">All 51 states are taken</h2>
-      <p class="muted" style="margin:0">Votes counted. The lowest total is eliminated and their states go back on the board.</p>
+      ${head}
       <div class="queue">${rows}</div>
       ${ctrl}
     </div>`);
