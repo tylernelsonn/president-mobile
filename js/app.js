@@ -2,6 +2,7 @@
 import * as G from './game.js';
 import { STATES, STATE_CODES, COUNTRIES, PALETTE, ev, stateName, WIN_EV } from './data.js';
 import { renderMap, textOn } from './map.js';
+import { RULES } from './rules.js';
 
 const SAVE_KEY = 'presidente.save.v1';
 const THEME_KEY = 'presidente.theme';
@@ -104,6 +105,7 @@ const ICON = {
   menu: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>',
   dice: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/><circle cx="8.5" cy="8.5" r="1.4" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.4" fill="currentColor"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/></svg>',
   scores: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 20V11M12 20V4M19 20v-6"/></svg>',
+  rules: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5"/><path d="M9 8h7M9 12h5" stroke-linecap="round"/></svg>',
   log: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1" fill="currentColor"/><circle cx="4" cy="12" r="1" fill="currentColor"/><circle cx="4" cy="18" r="1" fill="currentColor"/></svg>',
 };
 
@@ -136,7 +138,7 @@ function header() {
 }
 
 function tabs() {
-  const t = [['play', 'Play', ICON.dice], ['scores', 'Scores', ICON.scores], ['log', 'Log', ICON.log]];
+  const t = [['play', 'Play', ICON.dice], ['scores', 'Scores', ICON.scores], ['log', 'Log', ICON.log], ['rules', 'Rules', ICON.rules]];
   return `<nav class="tabs" aria-label="Sections">${t.map(([id, label, icon]) =>
     `<button data-act="tab" data-v="${id}" ${store.tab === id ? 'aria-current="page"' : ''}>${icon}${label}</button>`).join('')}</nav>`;
 }
@@ -174,6 +176,7 @@ function setupView() {
         ${d.players.map((p, i) => `<option value="${i}" ${+d.first === i ? 'selected' : ''}>${esc(p.name || `Player ${i + 1}`)}</option>`).join('')}
       </select>
       <button class="btn primary block" data-act="begin">Start the election</button>
+      <button class="btn block" data-act="tab" data-v="rules">Read the rules</button>
     </div>
   </section>`;
 }
@@ -433,6 +436,34 @@ function logView() {
   </div></section>`;
 }
 
+// ---------- rules tab ----------
+function rulesView() {
+  const block = (b) => {
+    if (b.p) return `<p>${esc(b.p)}</p>`;
+    if (b.ex) return `<p class="rule-ex"><span>Example</span>${esc(b.ex)}</p>`;
+    if (b.list) return `<dl class="rule-list">${b.list.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>`;
+    if (b.sheet) {
+      const cell = (c) => (c.startsWith('•') ? `<td><b class="dot">•</b>${esc(c.slice(1))}</td>` : `<td>${esc(c)}</td>`);
+      return `<div class="sheet-wrap"><p class="eyebrow" style="margin:0 0 6px">Scoresheet</p><table class="scoresheet">
+        <thead><tr>${b.sheet.head.map((h) => `<th>${esc(h)}</th>`).join('')}</tr></thead>
+        <tbody>${b.sheet.rows.map((r) => `<tr>${r.map(cell).join('')}</tr>`).join('')}</tbody></table></div>`;
+    }
+    return '';
+  };
+  return `<section class="view">
+    <div class="card stack">
+      <p class="eyebrow">How to play</p>
+      <h2 class="title">Presidente rules</h2>
+      ${store.game ? '' : '<button class="btn" data-act="tab" data-v="play">← Back to setup</button>'}
+      <nav class="rule-jump" aria-label="Jump to a section">${RULES.map((s) => `<a href="#rule-${s.id}" data-jump="rule-${s.id}">${esc(s.title)}</a>`).join('')}</nav>
+    </div>
+    ${RULES.map((s) => `<article class="card rule" id="rule-${s.id}">
+      <h3 class="rule-title">${esc(s.title)}</h3>
+      ${s.blocks.map(block).join('')}
+    </article>`).join('')}
+  </section>`;
+}
+
 // ---------- sheet ----------
 function sheet() {
   if (store.sheet !== 'menu') return '';
@@ -448,7 +479,8 @@ function sheet() {
 function render() {
   const g = store.game;
   let body;
-  if (!g) body = setupView();
+  if (store.tab === 'rules') body = rulesView();
+  else if (!g) body = setupView();
   else if (store.tab === 'scores') body = scoresView();
   else if (store.tab === 'log') body = logView();
   else body = playView();
@@ -459,6 +491,8 @@ function render() {
 
 // ---------- events ----------
 $app.addEventListener('click', (e) => {
+  const jump = e.target.closest('[data-jump]');
+  if (jump) { e.preventDefault(); document.getElementById(jump.dataset.jump)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
   const mapHit = e.target.closest('[data-map] [data-code]');
   if (mapHit) { store.selected = mapHit.dataset.code === store.selected ? null : mapHit.dataset.code; render(); return; }
   const el = e.target.closest('[data-act]');
