@@ -7,6 +7,7 @@ at the table. It replaces the paper scoresheet and tracks:
 - **Who won each state.** On the Play screen: a live electoral map colored by each player's piece color, plus a full state-by-state list.
 - **Scoreboard.** Votes per player, distance to 270, current state, votes left to roll out, lost turns, stuck status and alliances.
 - **Rounds.** Round end at 51 states or as soon as someone can't catch up, elimination (with tie roll-off), the highest scorer going first, and choosing starting states.
+- **Rules tab** with the full rules and scoresheet examples, also reachable from the setup screen.
 - **Undo** for any action, **dark mode**, and auto-save so a refresh doesn't lose the game.
 
 It's an installable web app (PWA). Open it in your phone's browser and use
@@ -52,6 +53,7 @@ completion.
 | `js/game.js` | Rules engine: pure functions, `state -> new state` |
 | `js/map.js` | SVG map renderer |
 | `js/map-paths.js` | State shapes generated from `us-atlas@3.0.1` (US Census, public domain) |
+| `js/rules.js` | The game rules shown on the Rules tab, from `Presidente.docx` |
 | `js/app.js` | UI, persistence, undo |
 | `css/app.css` | Styles, light and dark themes |
 | `sw.js`, `manifest.webmanifest` | Offline support and home-screen install |
