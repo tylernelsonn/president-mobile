@@ -193,7 +193,11 @@ function cardPicker(g, { initialOnly = false } = {}) {
       <span class="n">${esc(STATES[c][0])}</span><span class="v">${STATES[c][1]}</span></button>`;
   }).join('');
   const specials = initialOnly ? '' : `<div class="specials">
-      ${Object.entries(COUNTRIES).map(([c, x]) => `<button data-act="draw" data-v="${c}">${x.name}${p.allies.includes(c) ? '<br><span class="muted">allied</span>' : ''}</button>`).join('')}
+      ${Object.entries(COUNTRIES).map(([c, x]) => {
+        const ally = G.allyOf(g, c);
+        const tag = ally ? `<br><span class="muted">${ally.id === p.id ? 'allied' : `${esc(ally.name)}'s ally`}</span>` : '';
+        return `<button data-act="draw" data-v="${c}">${x.name}${tag}</button>`;
+      }).join('')}
       <button data-act="draw" data-v="STAY">Stay where you are</button>
     </div>`;
   return `<div class="stack">

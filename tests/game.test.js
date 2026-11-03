@@ -278,3 +278,21 @@ test('next round: ending in a country with no connected states means starting th
   s = G.chooseStart(s, { type: 'startCountry', code: 'MX' });
   assert.equal(G.player(s, 'p0').lost, 4);
 });
+
+test('a country has one ally until that player is eliminated', () => {
+  let s = G.newGame([{ name: 'A', color: 'a' }, { name: 'B', color: 'b' }, { name: 'C', color: 'c' }], 'p0');
+  s = G.initialDraw(s, 'CA'); s = G.initialDraw(s, 'TX'); s = G.initialDraw(s, 'NY');
+  s = G.roll(s, 7); s = G.draw(s, 'MX');               // A allies with Mexico
+  assert.deepEqual(G.player(s, 'p0').allies, ['MX']);
+  s = G.roll(s, 7); s = G.draw(s, 'MX');               // B draws Mexico
+  assert.match(s.notice, /allied with A/);
+  assert.equal(G.turnMode(s), 'draw');
+  assert.equal(G.player(s, 'p1').loc, 'TX');
+  s = G.draw(s, 'CN');                                 // Canada is still open
+  assert.deepEqual(G.player(s, 'p1').allies, ['CN']);
+  // A is eliminated: Mexico opens up again.
+  s.phase = 'roundEnd'; s.roundEnd = { scores: [{ id: 'p0', votes: 1 }, { id: 'p1', votes: 2 }, { id: 'p2', votes: 3 }], tied: ['p0'] };
+  s = G.eliminate(s, 'p0');
+  assert.equal(G.allyOf(s, 'MX'), null);
+  assert.equal(G.allyOf(s, 'CN').id, 'p1');
+});

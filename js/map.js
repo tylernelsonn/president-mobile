@@ -36,8 +36,10 @@ export function renderMap({ owner, players, currentId, selected, showPins = true
   out.push(`<svg class="map" viewBox="${VIEWBOX}" role="img" aria-label="${esc(title)}">`);
 
   for (const [c, box] of Object.entries(COUNTRY_BOX)) {
-    out.push(`<rect class="country" x="${box.x}" y="${box.y}" width="${box.w}" height="${box.h}" rx="10"/>`);
-    out.push(`<text class="country-lbl" x="${box.lx}" y="${box.cy}">${COUNTRIES[c].name.toUpperCase()}</text>`);
+    const ally = players.find((p) => !p.out && p.allies?.includes(c));
+    const edge = ally ? ` style="stroke:${ally.color};stroke-dasharray:none;stroke-width:3"` : '';
+    out.push(`<rect class="country" x="${box.x}" y="${box.y}" width="${box.w}" height="${box.h}" rx="10"${edge}/>`);
+    out.push(`<text class="country-lbl" x="${box.lx}" y="${box.cy}"${ally ? ` style="fill:${ally.color}"` : ''}>${COUNTRIES[c].name.toUpperCase()}${ally ? `<title>Allied with ${esc(ally.name)}</title>` : ''}</text>`);
   }
 
   for (const code of Object.keys(STATES)) {

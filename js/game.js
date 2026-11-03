@@ -21,6 +21,8 @@ export const ownedBy = (s, id) => ALL_STATES.filter((c) => s.owner[c] === id);
 export const votes = (s, id) => ownedBy(s, id).reduce((t, c) => t + ev(c), 0);
 export const freeStates = (s) => ALL_STATES.filter((c) => !s.owner[c]);
 export const isFree = (s, c) => c in STATES && !s.owner[c];
+// A country belongs to one ally at a time, until that player is eliminated.
+export const allyOf = (s, c) => activePlayers(s).find((p) => p.allies.includes(c)) || null;
 
 // Neighbours of a location: states, plus countries the state borders.
 function neighbours(loc) {
@@ -269,6 +271,12 @@ export function draw(prev, card) {
       s.pending = { kind: 'draw', reason: 'again' };
       return s;
     }
+    const ally = allyOf(s, card);
+    if (ally) {
+      s.notice = `${label(card)} is allied with ${ally.name}. Draw again.`;
+      s.pending = { kind: 'draw', reason: 'again' };
+      return s;
+    }
     enterCountry(s, p, card);
     note(s, `${p.name} drew ${label(card)}: on vacation, loses ${LOST_TURNS} turns`);
   } else if (card === 'STAY') {
@@ -365,6 +373,7 @@ export function eliminate(prev, id) {
   p.out = true;
   p.eliminatedRound = s.round;
   p.eliminatedVotes = s.roundEnd.scores.find((x) => x.id === id).votes;
+  p.allies = []; // their countries are open to everyone again
   for (const c of ownedBy(s, id)) delete s.owner[c];
   note(s, `${p.name} is eliminated with ${s.roundEnd.scores.find((x) => x.id === id).votes} votes`);
 
