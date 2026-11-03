@@ -1,13 +1,10 @@
-; DNS records for hosting Path to Presidency on GitHub Pages.
+; DNS records for pathtopresidency.com, hosting Path to Presidency on GitHub Pages.
 ; Import in Cloudflare: your domain -> DNS -> Records -> Import and Export -> Import.
-;
-; BEFORE IMPORTING: replace "yourdomain.com" on the $ORIGIN line below with the
-; domain you bought. Keep the trailing dot.
 ;
 ; Every record is set to "DNS only" (grey cloud). GitHub needs that to issue
 ; the free HTTPS certificate. Cloudflare reads the "cf_tags" comments on import.
 
-$ORIGIN yourdomain.com.
+$ORIGIN pathtopresidency.com.
 $TTL 3600
 
 ; Apex domain -> GitHub Pages (IPv4)
@@ -22,7 +19,7 @@ $TTL 3600
 @      IN  AAAA   2606:50c0:8002::153   ; cf_tags=cf-proxied:false
 @      IN  AAAA   2606:50c0:8003::153   ; cf_tags=cf-proxied:false
 
-; www -> GitHub Pages (GitHub redirects it to the apex domain)
+; www.pathtopresidency.com -> GitHub Pages (GitHub redirects it to pathtopresidency.com)
 www    IN  CNAME  tylernelsonn.github.io.   ; cf_tags=cf-proxied:false
 
 ; Domain verification (recommended). GitHub shows you this record under
