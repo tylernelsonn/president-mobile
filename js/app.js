@@ -266,7 +266,7 @@ function optionButton(o, i, act) {
   if (o.type === 'start') {
     return `<button class="option" data-act="${act}" data-i="${i}"><span class="what"><b>Start in ${esc(stateName(o.code))}</b><span>Roll out of ${ev(o.code)}</span></span><span class="ev">${ev(o.code)}</span></button>`;
   }
-  return `<button class="option" data-act="${act}" data-i="${i}"><span class="what"><b>Start in ${esc(stateName(o.code))}</b><span>Lose 4 turns to begin the round</span></span><span class="ev">${COUNTRIES[o.code].letter}</span></button>`;
+  return `<button class="option" data-act="${act}" data-i="${i}"><span class="what"><b>Start in ${esc(stateName(o.code))}</b><span>Lose 4 turns, then move to any state on its border, including across the country</span></span><span class="ev">${COUNTRIES[o.code].letter}</span></button>`;
 }
 
 function upNext(g) {

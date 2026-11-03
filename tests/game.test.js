@@ -249,3 +249,32 @@ test('next round: ending in a country starts the chain from its border', () => {
   const codes = G.startOptions(s, a).map((o) => o.code).sort();
   assert.deepEqual(codes, ['KS', 'MX', 'OK', 'TX']);
 });
+
+test('next round: crossing through an allied country means starting there and losing 4 turns', () => {
+  let s = G.newGame([{ name: 'A', color: 'a' }, { name: 'B', color: 'b' }], 'p0');
+  s = G.initialDraw(s, 'WA'); s = G.initialDraw(s, 'TX');
+  s.owner.ME = 'p0';                 // across Canada from Washington
+  s.players[0].allies = ['CN'];
+  s.phase = 'nextStart'; s.startQueue = ['p0', 'p1'];
+  const opts = G.startOptions(s, G.player(s, 'p0'));
+  assert.ok(!opts.some((o) => o.code === 'ME'));                      // not a direct start
+  assert.ok(opts.some((o) => o.type === 'startCountry' && o.code === 'CN'));
+  s = G.chooseStart(s, { type: 'startCountry', code: 'CN' });
+  s = G.chooseStart(s, G.startOptions(s, G.player(s, 'p1'))[0]);
+  assert.equal(G.player(s, 'p0').loc, 'CN');
+  assert.equal(G.player(s, 'p0').lost, 4);
+  s.turn = 0;
+  for (let i = 0; i < 4; i++) { assert.equal(G.turnMode(s), 'lose'); s = G.loseTurn(s); s = G.roll(s, 2); }
+  s = G.roll(s, 5);                   // leaves Canada
+  assert.ok(s.pending.options.some((o) => o.type === 'return' && o.code === 'ME'));
+});
+
+test('next round: ending in a country with no connected states means starting there', () => {
+  let s = G.newGame([{ name: 'A', color: 'a' }, { name: 'B', color: 'b' }], 'p0');
+  s = G.initialDraw(s, 'FL'); s = G.initialDraw(s, 'TX');
+  const a = G.player(s, 'p0'); a.loc = 'MX'; a.allies = ['MX']; a.lost = 1;
+  s.phase = 'nextStart'; s.startQueue = ['p0', 'p1'];
+  assert.deepEqual(G.startOptions(s, a), [{ type: 'startCountry', code: 'MX' }]);
+  s = G.chooseStart(s, { type: 'startCountry', code: 'MX' });
+  assert.equal(G.player(s, 'p0').lost, 4);
+});
