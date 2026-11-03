@@ -1,0 +1,32 @@
+; DNS records for hosting Path to Presidency on GitHub Pages.
+; Import in Cloudflare: your domain -> DNS -> Records -> Import and Export -> Import.
+;
+; BEFORE IMPORTING: replace "yourdomain.com" on the $ORIGIN line below with the
+; domain you bought. Keep the trailing dot.
+;
+; Every record is set to "DNS only" (grey cloud). GitHub needs that to issue
+; the free HTTPS certificate. Cloudflare reads the "cf_tags" comments on import.
+
+$ORIGIN yourdomain.com.
+$TTL 3600
+
+; Apex domain -> GitHub Pages (IPv4)
+@      IN  A      185.199.108.153   ; cf_tags=cf-proxied:false
+@      IN  A      185.199.109.153   ; cf_tags=cf-proxied:false
+@      IN  A      185.199.110.153   ; cf_tags=cf-proxied:false
+@      IN  A      185.199.111.153   ; cf_tags=cf-proxied:false
+
+; Apex domain -> GitHub Pages (IPv6)
+@      IN  AAAA   2606:50c0:8000::153   ; cf_tags=cf-proxied:false
+@      IN  AAAA   2606:50c0:8001::153   ; cf_tags=cf-proxied:false
+@      IN  AAAA   2606:50c0:8002::153   ; cf_tags=cf-proxied:false
+@      IN  AAAA   2606:50c0:8003::153   ; cf_tags=cf-proxied:false
+
+; www -> GitHub Pages (GitHub redirects it to the apex domain)
+www    IN  CNAME  tylernelsonn.github.io.   ; cf_tags=cf-proxied:false
+
+; Domain verification (recommended). GitHub shows you this record under
+; github.com -> Settings -> Pages -> Add a domain. Fill in its value, then
+; remove the leading ";" so the record is imported. You can also add it by
+; hand in Cloudflare after GitHub gives you the value.
+;_github-pages-challenge-tylernelsonn   IN  TXT  "PASTE-THE-CODE-GITHUB-GIVES-YOU"
