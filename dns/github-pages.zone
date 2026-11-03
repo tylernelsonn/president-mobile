@@ -1,8 +1,10 @@
 ; DNS records for pathtopresidency.com, hosting Path to Presidency on GitHub Pages.
 ; Import in Cloudflare: your domain -> DNS -> Records -> Import and Export -> Import.
 ;
-; Every record is set to "DNS only" (grey cloud). GitHub needs that to issue
-; the free HTTPS certificate. Cloudflare reads the "cf_tags" comments on import.
+; IMPORTANT: in the import dialog, UNTICK "Proxy imported DNS records".
+; Every record must be "DNS only" (grey cloud) or GitHub can't issue the free
+; HTTPS certificate. After importing, check each record shows a grey cloud and
+; switch any orange (Proxied) ones to DNS only.
 
 $ORIGIN pathtopresidency.com.
 $TTL 3600
