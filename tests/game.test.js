@@ -221,3 +221,31 @@ test('no early end while the trailing player could still tie or pass someone', (
   s = G.initialDraw(s, 'WY'); s = G.initialDraw(s, 'VT');
   assert.equal(G.mathematicallyEliminated(s), null);
 });
+
+test('next round: start anywhere along a chain of owned states', () => {
+  let s = G.newGame([{ name: 'A', color: 'a' }, { name: 'B', color: 'b' }, { name: 'C', color: 'c' }], 'p0');
+  s = G.initialDraw(s, 'CA'); s = G.initialDraw(s, 'NY'); s = G.initialDraw(s, 'FL');
+  for (const c of ['AZ', 'NM', 'TX', 'OK']) s.owner[c] = 'p0';
+  s.owner.WA = 'p0';                 // owned but not connected to the chain
+  s.players[0].allies = ['MX', 'CN'];
+  s.phase = 'nextStart'; s.startQueue = ['p0', 'p1', 'p2'];
+  const opts = G.startOptions(s, G.player(s, 'p0'));
+  const states = opts.filter((o) => o.type === 'start').map((o) => o.code);
+  assert.equal(states[0], 'CA');     // where they ended comes first
+  assert.deepEqual([...states].sort(), ['AZ', 'CA', 'NM', 'OK', 'TX']);
+  assert.ok(!states.includes('WA'));
+  // Mexico borders the chain; Canada only borders WA, which isn't connected.
+  assert.deepEqual(opts.filter((o) => o.type === 'startCountry').map((o) => o.code), ['MX']);
+  s = G.chooseStart(s, { type: 'start', code: 'OK' });
+  assert.equal(G.player(s, 'p0').loc, 'OK');
+  assert.equal(G.player(s, 'p0').remaining, ev('OK'));
+});
+
+test('next round: ending in a country starts the chain from its border', () => {
+  let s = G.newGame([{ name: 'A', color: 'a' }, { name: 'B', color: 'b' }], 'p0');
+  s = G.initialDraw(s, 'TX'); s = G.initialDraw(s, 'NY');
+  s.owner.OK = 'p0'; s.owner.KS = 'p0';
+  const a = G.player(s, 'p0'); a.loc = 'MX'; a.allies = ['MX']; a.lost = 2;
+  const codes = G.startOptions(s, a).map((o) => o.code).sort();
+  assert.deepEqual(codes, ['KS', 'MX', 'OK', 'TX']);
+});

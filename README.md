@@ -70,7 +70,7 @@ the app does this:
 - **Opening draw.** Only state cards count. Redraw Mexico, Canada and Stay.
 - **Drawing Mexico or Canada when already allied** means draw again.
 - **Stay Where You Are** resets your current state to full votes and costs 4 turns.
-- **Next round start.** You may start in the state you ended in, an owned state next to it, or an allied country next to it (lose 4 turns). If you ended in a country, you may start in an owned state on its border or in the country (lose 4 turns). You roll out of the chosen state's full votes.
+- **Next round start.** You may start in any state you own that connects to where you ended through a chain of your own states (end in California while owning CA, AZ, NM, TX and OK, and you can start in any of them), or in an allied country that borders that chain (lose 4 turns). Chains don't pass through a country. If you ended in a country, the chain starts from the states you own on its border, and you may also stay in the country (lose 4 turns). You roll out of the chosen state's full votes.
 - **Mathematical elimination ends the round.** After every turn, the app checks whether any player's votes plus every free state's votes are still below every other player's votes. If so, that player can't avoid last place, so the round ends right away and the app shows the round-over screen. Their states go back on the board, and states that were still free stay free for the next round. If the best case would only tie someone, the round keeps going.
 - **270** ends the game the moment someone reaches it.
 - **A 269–269 tie** is announced, and the tiebreaker is played at the table.

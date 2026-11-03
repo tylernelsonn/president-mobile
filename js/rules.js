@@ -98,6 +98,7 @@ export const RULES = [
     id: 'house', title: 'Added in the app',
     blocks: [
       { p: 'A round also ends early as soon as a player is mathematically eliminated: when their votes plus every vote still free are less than every other player’s votes. That player is eliminated, and any states still free stay free for the next round.' },
+      { p: 'When choosing where to start the next round, “connected to where you ended” includes states more than one away: any state you own that links back to where you ended through a chain of your own states. For example, if you end in California and own California, Arizona, New Mexico, Texas, and Oklahoma, you may start in any of them.' },
     ],
   },
 ];

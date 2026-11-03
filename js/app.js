@@ -360,7 +360,7 @@ function nextStartView(g) {
   return layout(g, `<div class="card stack">
       <p class="eyebrow">Round ${g.round + 1} setup</p>
       <div class="turn-head">${swatch(p, 'lg')}<div class="grow"><h2 class="title">${esc(p.name)}</h2><div class="loc">ended in ${esc(locName(p.loc))}</div></div></div>
-      <p class="muted" style="margin:0">${esc(first.name)} has the most votes and goes first. Choose a state you own that connects to where you ended.</p>
+      <p class="muted" style="margin:0">${esc(first.name)} has the most votes and goes first. Start in any state you own that connects to where you ended through a chain of your own states.</p>
       <div class="stack">${opts.map((o, i) => optionButton(o, i, 'start')).join('')}</div>
     </div>`);
 }

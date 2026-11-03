@@ -73,19 +73,29 @@ export function countryExitOptions(s, p) {
   ];
 }
 
-// Where a surviving player may begin the next round.
+// Where a surviving player may begin the next round: any state they own that
+// connects to where they ended through an unbroken chain of their own states
+// (e.g. ended in CA, owns CA-AZ-NM-TX-OK -> may start in any of them), or an
+// allied country bordering that chain (losing 4 turns). Chains don't pass
+// through a country. Ending in a country, the chain starts from the owned
+// states on its border.
 export function startOptions(s, p) {
-  const opts = [];
-  if (isCountry(p.loc)) {
-    for (const b of BORDERS[p.loc]) if (s.owner[b] === p.id) opts.push({ type: 'start', code: b });
-    opts.push({ type: 'startCountry', code: p.loc });
-    return opts;
+  const seeds = isCountry(p.loc) ? BORDERS[p.loc].filter((b) => s.owner[b] === p.id) : [p.loc];
+  const chain = new Set(seeds);
+  const queue = [...seeds];
+  while (queue.length) {
+    const at = queue.shift();
+    for (const n of ADJ[at]) {
+      if (s.owner[n] === p.id && !chain.has(n)) { chain.add(n); queue.push(n); }
+    }
   }
-  opts.push({ type: 'start', code: p.loc });
-  for (const n of ADJ[p.loc]) if (s.owner[n] === p.id) opts.push({ type: 'start', code: n });
+  const states = [...chain].sort((a, b) => (a === p.loc ? -1 : b === p.loc ? 1 : stateName(a).localeCompare(stateName(b))));
+  const opts = states.map((code) => ({ type: 'start', code }));
+  const countries = new Set(isCountry(p.loc) ? [p.loc] : []);
   for (const c of Object.keys(BORDERS)) {
-    if (BORDERS[c].includes(p.loc) && p.allies.includes(c)) opts.push({ type: 'startCountry', code: c });
+    if (p.allies.includes(c) && BORDERS[c].some((b) => chain.has(b))) countries.add(c);
   }
+  for (const c of countries) opts.push({ type: 'startCountry', code: c });
   return opts;
 }
 
