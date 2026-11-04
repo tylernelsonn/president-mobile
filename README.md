@@ -65,7 +65,7 @@ the app does this:
 
 - **Board connections.** Real land borders, plus the Tricky States: Alaska ↔ Hawaii, Alaska/Hawaii ↔ the West Coast (WA, OR, CA), D.C. ↔ MD/VA/WV, Utah ↔ New Mexico, Arizona ↔ Colorado, and no New Jersey ↔ Connecticut.
 - **Canada borders** AK, WA, ID, MT, ND, MN, MI, OH, PA, NY, VT, NH and ME (Ohio and Pennsylvania across Lake Erie). **Mexico borders** CA, AZ, NM, TX and HI.
-- **Rolling out.** When you roll your number or more, you may move into an adjacent free state (new votes, dot), back into an adjacent state you own that leads to a free state (no new votes, roll out again), or into an allied country that borders a free state (lose 4 turns). If none of these exist, you're stuck.
+- **Rolling out.** When you roll your number or more, you may move into an adjacent free state (new votes, dot), back into an adjacent state you own that leads to a free state (no new votes, roll out again), or into an allied country that borders a free state (lose 4 turns). If the only route to a free state goes through an allied country, you may take it or choose the stuck rule instead. If none of these exist, you're stuck.
 - **Stuck.** You get 4 rolls to hit a 7. On the next turn you draw a card instead of rolling.
 - **Opening draw.** Only state cards count. Redraw Mexico, Canada and Stay.
 - **Drawing Mexico or Canada when already allied** means draw again.

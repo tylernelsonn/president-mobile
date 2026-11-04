@@ -101,6 +101,7 @@ export const RULES = [
       { p: 'When choosing where to start the next round, “connected to where you ended” includes states more than one away: any state you own that links back to where you ended through a chain of your own states. For example, if you end in California and own California, Arizona, New Mexico, Texas, and Oklahoma, you may start in any of them.' },
       { p: 'Chains of states don’t pass through Mexico or Canada. To get to your states on the other side of a country you’re allied with, you start the round in that country and lose 4 turns. If you end the round in Mexico or Canada and own no states connected to it, you must start in that country and lose 4 turns.' },
       { p: 'Mexico and Canada can each have only one ally. Once a player is allied with a country, nobody else can go there, in this round or later ones. Anyone else who draws that country’s card keeps drawing. The country opens up again only when its ally is eliminated.' },
+      { p: 'If the only way to an open state is through a country you’re allied with, you can take that route (losing 4 turns in the country) or choose the stuck rule instead. If you can reach an open state through your own states, you must take that route.' },
     ],
   },
 ];

@@ -296,3 +296,36 @@ test('a country has one ally until that player is eliminated', () => {
   assert.equal(G.allyOf(s, 'MX'), null);
   assert.equal(G.allyOf(s, 'CN').id, 'p1');
 });
+
+function spread(s, keep, ids) {
+  Object.keys(STATES).filter((c) => !s.owner[c] && !keep.includes(c)).sort((a, b) => ev(b) - ev(a))
+    .forEach((c) => { s.owner[c] = [...ids].sort((x, y) => G.votes(s, x) - G.votes(s, y))[0]; });
+}
+
+test('only route to a free state is through an allied country: go there or take the stuck rule', () => {
+  let s = G.newGame([{ name: 'Zak', color: 'a' }, { name: 'B', color: 'b' }, { name: 'C', color: 'c' }], 'p0');
+  s = G.initialDraw(s, 'ME'); s = G.initialDraw(s, 'TX'); s = G.initialDraw(s, 'CA');
+  s.players[0].allies = ['CN'];
+  for (const c of ['FL', 'NY', 'PA', 'IL']) s.owner[c] = 'p0';   // keep Zak in contention
+  spread(s, ['MT'], ['p1', 'p2']);                                 // Montana is the only free state
+  s = G.roll(s, 4);                                                // out of Maine
+  assert.deepEqual(s.pending.options, [{ type: 'country', code: 'CN' }, { type: 'stuck' }]);
+  const toCanada = G.choose(s, { type: 'country', code: 'CN' });
+  assert.equal(G.player(toCanada, 'p0').loc, 'CN');
+  s = G.choose(s, { type: 'stuck' });
+  const zak = G.player(s, 'p0');
+  assert.equal(zak.loc, 'ME');
+  assert.equal(zak.stuck, 4);
+});
+
+test('no stuck option while a route through your own states exists', () => {
+  let s = G.newGame([{ name: 'Zak', color: 'a' }, { name: 'B', color: 'b' }, { name: 'C', color: 'c' }], 'p0');
+  s = G.initialDraw(s, 'ME'); s = G.initialDraw(s, 'TX'); s = G.initialDraw(s, 'CA');
+  s.players[0].allies = ['CN'];
+  for (const c of ['NH', 'FL', 'PA', 'IL']) s.owner[c] = 'p0';
+  spread(s, ['VT', 'MT'], ['p1', 'p2']);                          // VT reachable through NH
+  s = G.roll(s, 4);
+  const types = s.pending.options.map((o) => o.type);
+  assert.ok(types.includes('return') && types.includes('country'));
+  assert.ok(!types.includes('stuck'));
+});

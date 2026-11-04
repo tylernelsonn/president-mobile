@@ -258,6 +258,9 @@ function turnCard(g) {
 }
 
 function optionButton(o, i, act) {
+  if (o.type === 'stuck') {
+    return `<button class="option" data-act="${act}" data-i="${i}"><span class="what"><b>Stay put: use the stuck rule</b><span>Skip the trip through the country · roll for a 7 for 4 turns, then draw a card</span></span><span class="ev">7</span></button>`;
+  }
   if (o.type === 'claim') {
     return `<button class="option claim" data-act="${act}" data-i="${i}"><span class="what"><b>Win ${esc(stateName(o.code))}</b><span>New state · adds ${ev(o.code)} votes</span></span><span class="ev">+${ev(o.code)}</span></button>`;
   }

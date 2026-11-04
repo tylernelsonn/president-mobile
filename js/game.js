@@ -33,9 +33,9 @@ function neighbours(loc) {
 }
 
 // Can player reach a free state starting at `start`, walking only through
-// states they own and countries they are allied with?
+// states they own and (unless viaCountries is false) countries they are allied with?
 // `from` (the state being left) is not walked back through.
-function leadsToFree(s, p, start, from) {
+function leadsToFree(s, p, start, from, viaCountries = true) {
   const seen = new Set([start, from]);
   const queue = [start];
   while (queue.length) {
@@ -43,7 +43,7 @@ function leadsToFree(s, p, start, from) {
     for (const n of neighbours(at)) {
       if (isFree(s, n)) return true;
       if (seen.has(n)) continue;
-      const walkable = isCountry(n) ? p.allies.includes(n) : s.owner[n] === p.id;
+      const walkable = isCountry(n) ? viaCountries && p.allies.includes(n) : s.owner[n] === p.id;
       if (walkable) { seen.add(n); queue.push(n); }
     }
   }
@@ -63,6 +63,11 @@ export function moveOptions(s, p) {
       opts.push({ type: 'country', code: c });
     }
   }
+  // If the only way to a free state goes through an allied country, the player
+  // may take that route or choose the stuck rule instead.
+  const direct = opts.some((o) => o.type === 'claim')
+    || opts.some((o) => o.type === 'return' && leadsToFree(s, p, o.code, from, false));
+  if (opts.length && !direct) opts.push({ type: 'stuck' });
   return opts;
 }
 
@@ -228,6 +233,8 @@ export function choose(prev, opt) {
   } else if (opt.type === 'country') {
     enterCountry(s, p, opt.code);
     note(s, `${p.name} went back to ${label(opt.code)} and loses ${LOST_TURNS} turns`);
+  } else if (opt.type === 'stuck') {
+    becomeStuck(s, p);
   }
   s.pending = null;
   return endTurn(s);
