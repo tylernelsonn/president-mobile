@@ -56,11 +56,10 @@ export const BORDERS = {
   MX: ['CA', 'AZ', 'NM', 'TX', 'HI'],
 };
 
+// Piece colours: one per player, 2–6 players.
+export const MAX_PLAYERS = 6;
 export const PALETTE = [
   { name: 'Red', hex: '#d33a3a' }, { name: 'Blue', hex: '#2f63d6' },
   { name: 'Green', hex: '#2f9a4c' }, { name: 'Yellow', hex: '#e5b420' },
-  { name: 'Purple', hex: '#8b4fd0' }, { name: 'Orange', hex: '#ea7a22' },
-  { name: 'Black', hex: '#2b2b33' }, { name: 'White', hex: '#f2f2ee' },
-  { name: 'Pink', hex: '#e2589f' }, { name: 'Teal', hex: '#1f9d9a' },
-  { name: 'Brown', hex: '#8a5a33' }, { name: 'Gray', hex: '#8d939c' },
+  { name: 'White', hex: '#f4f4f0' }, { name: 'Black', hex: '#24242b' },
 ];

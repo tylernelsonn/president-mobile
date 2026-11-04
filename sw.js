@@ -1,5 +1,5 @@
 // Offline cache for the app shell. Bump VERSION when files change.
-const VERSION = 'presidente-v11';
+const VERSION = 'presidente-v12';
 const SHELL = [
   './', 'index.html', 'manifest.webmanifest', 'css/app.css',
   'js/app.js', 'js/game.js', 'js/data.js', 'js/map.js', 'js/map-paths.js', 'js/rules.js',

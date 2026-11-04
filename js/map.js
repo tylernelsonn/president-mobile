@@ -10,6 +10,18 @@ const COUNTRY_BOX = {
 };
 export const VIEWBOX = '0 -64 975 740';
 
+function luminance(hex) {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex || '');
+  if (!m) return 0.5;
+  const n = parseInt(m[1], 16);
+  const [r, g, b] = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => {
+    v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+// White and black pieces get an outline so they stand out from the board and the page.
+export const edge = (hex) => { const l = luminance(hex); return l > 0.75 || l < 0.03 ? ' edge' : ''; };
+
 export function textOn(hex) {
   const m = /^#?([0-9a-f]{6})$/i.exec(hex || '');
   if (!m) return '#111';
@@ -46,14 +58,14 @@ export function renderMap({ owner, players, currentId, selected, showPins = true
     if (code === 'DC') continue;
     const o = owner[code];
     const fill = o ? `style="fill:${color[o]}"` : '';
-    const cls = `st${o ? '' : ' free'}${selected === code ? ' sel' : ''}`;
+    const cls = `st${o ? edge(color[o]) : ' free'}${selected === code ? ' sel' : ''}`;
     out.push(`<path class="${cls}" ${fill} d="${MAP_PATHS[code].d}" data-code="${code}"><title>${esc(STATES[code][0])} · ${STATES[code][1]}</title></path>`);
   }
   // D.C. is too small to see: draw it as a dot.
   {
     const [x, y] = MAP_PATHS.DC.c;
     const o = owner.DC;
-    out.push(`<circle class="st${o ? '' : ' free'}${selected === 'DC' ? ' sel' : ''}" ${o ? `style="fill:${color[o]}"` : ''} cx="${x + 22}" cy="${y + 12}" r="9" data-code="DC"><title>Washington D.C. · 3</title></circle>`);
+    out.push(`<circle class="st${o ? edge(color[o]) : ' free'}${selected === 'DC' ? ' sel' : ''}" ${o ? `style="fill:${color[o]}"` : ''} cx="${x + 22}" cy="${y + 12}" r="9" data-code="DC"><title>Washington D.C. · 3</title></circle>`);
     out.push(`<path d="M${x} ${y}L${x + 15} ${y + 8}" stroke="var(--muted)" stroke-width="1"/>`);
   }
   for (const code of Object.keys(STATES)) {
@@ -74,7 +86,7 @@ export function renderMap({ owner, players, currentId, selected, showPins = true
         const px = x + (i - (ps.length - 1) / 2) * spread + (COUNTRY_BOX[loc] ? 0 : 0);
         const py = COUNTRY_BOX[loc] ? y : y - 30;
         if (p.id === currentId) out.push(`<circle class="pin-ring" cx="${px}" cy="${py}" r="23"/>`);
-        out.push(`<circle class="pin" cx="${px}" cy="${py}" r="16" style="fill:${p.color}"/>`);
+        out.push(`<circle class="pin${edge(p.color)}" cx="${px}" cy="${py}" r="16" style="fill:${p.color}"/>`);
         out.push(`<text class="pin-t" x="${px}" y="${py + 1}" style="fill:${textOn(p.color)}">${esc(p.name.slice(0, 1).toUpperCase())}</text>`);
       });
     }

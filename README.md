@@ -3,6 +3,7 @@
 **Path to Presidency** is a phone companion app for the **Presidente** board game. One scorekeeper runs it
 at the table. It replaces the paper scoresheet and tracks:
 
+- **Players.** 2–6 players, each with a piece colour: red, blue, green, yellow, white or black.
 - **Turns.** Tap the dice total. The app subtracts it, handles the 7 rule, and offers only the moves the rules allow.
 - **Who won each state.** On the Play screen: a live electoral map colored by each player's piece color, plus a full state-by-state list.
 - **Scoreboard.** Votes per player, distance to 270, current state, votes left to roll out, lost turns, stuck status and alliances.
@@ -42,7 +43,7 @@ npm test
 
 The tests cover the board data (538 votes, symmetric adjacency, the Tricky
 States), each rule (rolling out, 7s, vacation cards, backtracking, stuck,
-elimination, 270), and a fuzz test that plays 300 random 2–8 player games to
+elimination, 270), and a fuzz test that plays 300 random 2–6 player games to
 completion.
 
 ## Project layout

@@ -166,7 +166,7 @@ test('state is never mutated by actions', () => {
   assert.equal(JSON.stringify(s), before);
 });
 
-test('fuzz: random games always finish with a valid result', () => {
+test('fuzz: random 2–6 player games always finish with a valid result', () => {
   const codes = Object.keys(STATES);
   let seed = 12345;
   const rnd = () => ((seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648);
@@ -174,7 +174,7 @@ test('fuzz: random games always finish with a valid result', () => {
   const dice = () => 2 + Math.floor(rnd() * 6) + Math.floor(rnd() * 6);
   let finished = 0;
   for (let g = 0; g < 300; g++) {
-    const n = 2 + (g % 7);
+    const n = 2 + (g % 5);  // 2–6 players
     let s = G.newGame(Array.from({ length: n }, (_, i) => ({ name: 'P' + i, color: 'c' })), 'p' + (g % n));
     while (s.phase === 'initial') s = G.initialDraw(s, pick(G.freeStates(s)));
     for (let step = 0; step < 200000 && s.phase !== 'over'; step++) {

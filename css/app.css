@@ -8,13 +8,14 @@
   --line: #d3d9e3;
   --accent: #1d3f94;
   --accent-ink: #ffffff;
-  --free: #d6dce6;
+  --free: #c9d0dc;
   --map-line: #ffffff;
   --win: #b7861b;
   --danger: #b4232f;
   --warn-bg: #fff4d6;
   --warn-ink: #6b4a00;
   --head: #14213a;
+  --edge: #6f7a8e;
   --head-ink: #f3f5f9;
   --shadow: 0 1px 2px rgba(20, 33, 58, 0.08), 0 4px 16px rgba(20, 33, 58, 0.06);
   --font-display: 'Big Shoulders Display', 'Arial Narrow', 'Roboto Condensed', Impact, sans-serif;
@@ -26,7 +27,7 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #0c1220; --surface: #151e31; --surface-2: #1c2740; --ink: #e8edf6; --muted: #98a4bb;
-    --line: #2a3754; --accent: #7fa2ff; --accent-ink: #0c1220; --free: #2a3550; --map-line: #0c1220;
+    --line: #2a3754; --accent: #7fa2ff; --accent-ink: #0c1220; --free: #3a4763; --map-line: #0c1220;
     --win: #f0c04a; --danger: #ff6b76; --warn-bg: #3a2f12; --warn-ink: #ffdf8a;
     --head: #070b14; --head-ink: #e8edf6;
     --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.25);
@@ -35,7 +36,7 @@
 }
 :root[data-theme="dark"] {
   --bg: #0c1220; --surface: #151e31; --surface-2: #1c2740; --ink: #e8edf6; --muted: #98a4bb;
-  --line: #2a3754; --accent: #7fa2ff; --accent-ink: #0c1220; --free: #2a3550; --map-line: #0c1220;
+  --line: #2a3754; --accent: #7fa2ff; --accent-ink: #0c1220; --free: #3a4763; --map-line: #0c1220;
   --win: #f0c04a; --danger: #ff6b76; --warn-bg: #3a2f12; --warn-ink: #ffdf8a;
   --head: #070b14; --head-ink: #e8edf6;
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.25);
@@ -184,6 +185,9 @@ h3.sub { font-size: 15px; font-weight: 700; margin: 0; }
 .map { width: 100%; height: auto; display: block; touch-action: manipulation; }
 .map .st { stroke: var(--map-line); stroke-width: 1; stroke-linejoin: round; cursor: pointer; transition: fill 0.25s ease; }
 .map .st.free { fill: var(--free); }
+.map .st.edge { stroke: var(--edge); stroke-width: 1.5; }
+.swatch.edge, .palette button.edge { box-shadow: inset 0 0 0 2px var(--edge); }
+.map .pin.edge { stroke: var(--edge); }
 .map .st.sel { stroke: var(--ink); stroke-width: 2.5; }
 .map .lbl { font: 700 17px var(--font-body); pointer-events: none; text-anchor: middle; dominant-baseline: central; }
 .map .country { fill: var(--surface-2); stroke: var(--line); stroke-width: 1.5; stroke-dasharray: 5 4; }
@@ -292,3 +296,25 @@ select.sel { height: 46px; border-radius: 12px; border: 1px solid var(--line); b
 .scoresheet td { text-align: center; padding: 3px 6px; font-weight: 600; height: 26px; }
 .scoresheet td + td, .scoresheet th + th { border-left: 1px solid var(--line); }
 .scoresheet .dot { color: var(--accent); margin-right: 1px; }
+
+/* Landing */
+.landing {
+  min-height: 100vh; min-height: 100dvh;
+  background: var(--head); color: var(--head-ink);
+  display: grid; place-items: center; text-align: center;
+  padding-top: max(32px, env(safe-area-inset-top, 0px));
+  padding-bottom: max(32px, env(safe-area-inset-bottom, 0px));
+  padding-left: max(24px, env(safe-area-inset-left, 0px));
+  padding-right: max(24px, env(safe-area-inset-right, 0px));
+}
+.landing-inner { display: grid; gap: 28px; justify-items: center; width: 100%; max-width: 420px; }
+.landing-logo { width: min(48vw, 200px); height: auto; border-radius: 22%; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.08); }
+.landing h1 { margin: 0; font: 900 clamp(48px, 15vw, 76px)/0.92 var(--font-display); text-transform: uppercase; letter-spacing: 0.01em; text-wrap: balance; }
+.landing .btn.start { width: 100%; min-height: 60px; font: 800 24px/1 var(--font-display); text-transform: uppercase; letter-spacing: 0.06em; background: #d33a3a; color: #fff; border: 0; border-radius: 16px; box-shadow: 0 6px 20px rgba(211, 58, 58, 0.35); }
+.landing .btn.start:active { transform: scale(0.98); }
+@media (prefers-reduced-motion: no-preference) {
+  .landing-inner > * { animation: rise 0.6s cubic-bezier(.2, .7, .2, 1) both; }
+  .landing-inner > :nth-child(2) { animation-delay: 0.08s; }
+  .landing-inner > :nth-child(3) { animation-delay: 0.16s; }
+}
+@keyframes rise { from { opacity: 0; transform: translateY(12px); } }

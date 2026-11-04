@@ -1,7 +1,7 @@
 // Path to Presidency scorekeeper UI. Renders from a single store; rules live in game.js.
 import * as G from './game.js';
-import { STATES, STATE_CODES, COUNTRIES, PALETTE, ev, stateName, WIN_EV } from './data.js';
-import { renderMap, textOn } from './map.js';
+import { STATES, STATE_CODES, COUNTRIES, PALETTE, MAX_PLAYERS, ev, stateName, WIN_EV } from './data.js';
+import { renderMap, textOn, edge } from './map.js';
 import { RULES } from './rules.js';
 
 const SAVE_KEY = 'presidente.save.v1';
@@ -12,6 +12,7 @@ const store = {
   game: null,
   history: [],
   tab: 'play',
+  screen: 'landing', // 'landing' | 'setup' while no game is running
   selected: null,
   statesOpen: false,
   sheet: null,
@@ -36,8 +37,20 @@ function load() {
     if (!raw) return;
     const d = JSON.parse(raw);
     if (d.game?.v === 1) { store.game = d.game; store.history = d.history || []; }
-    if (d.draft?.players?.length) store.draft = d.draft;
+    if (d.draft?.players?.length) store.draft = cleanDraft(d.draft);
   } catch { /* ignore a corrupt save */ }
+}
+
+// Older saves may hold up to 8 players or colours that are no longer offered.
+function cleanDraft(draft) {
+  const players = draft.players.slice(0, MAX_PLAYERS);
+  const hexes = PALETTE.map((c) => c.hex);
+  for (const p of players) {
+    if (!hexes.includes(p.color) || players.filter((q) => q.color === p.color).length > 1) {
+      p.color = hexes.find((h) => !players.some((q) => q !== p && q.color === h));
+    }
+  }
+  return { players, first: Math.min(+draft.first || 0, players.length - 1) };
 }
 
 // ---------- theme ----------
@@ -111,7 +124,7 @@ const ICON = {
 
 function swatch(p, size = '') {
   const letter = size ? esc(p.name.slice(0, 1).toUpperCase()) : '';
-  return `<span class="swatch ${size}" style="background:${p.color};color:${textOn(p.color)}">${letter}</span>`;
+  return `<span class="swatch ${size}${edge(p.color)}" style="background:${p.color};color:${textOn(p.color)}">${letter}</span>`;
 }
 
 function statusChips(g, p) {
@@ -156,7 +169,7 @@ function setupView() {
         <button data-act="remove" data-i="${i}" aria-label="Remove player" ${d.players.length <= 2 ? 'disabled' : ''}>✕</button>
       </div>
       <div class="palette" role="group" aria-label="Piece colour for player ${i + 1}">
-        ${PALETTE.map((c) => `<button data-act="color" data-i="${i}" data-v="${c.hex}" style="background:${c.hex}" aria-label="${c.name}" aria-pressed="${p.color === c.hex}" ${used.includes(c.hex) && p.color !== c.hex ? 'disabled' : ''}></button>`).join('')}
+        ${PALETTE.map((c) => `<button data-act="color" data-i="${i}" data-v="${c.hex}" class="${edge(c.hex).trim()}" style="background:${c.hex}" aria-label="${c.name}" aria-pressed="${p.color === c.hex}" ${used.includes(c.hex) && p.color !== c.hex ? 'disabled' : ''}></button>`).join('')}
       </div>
     </div>`).join('');
   return `<section class="view">
@@ -166,8 +179,8 @@ function setupView() {
       <p class="muted">Add everyone in clockwise seating order and choose the colour of their pieces.</p>
       <div>${rows}</div>
       <div class="row wrap" style="margin-top:12px">
-        <button class="btn" data-act="add" ${d.players.length >= 8 ? 'disabled' : ''}>+ Add player</button>
-        <span class="muted">${d.players.length} of 8 players</span>
+        <button class="btn" data-act="add" ${d.players.length >= MAX_PLAYERS ? 'disabled' : ''}>+ Add player</button>
+        <span class="muted">${d.players.length} of ${MAX_PLAYERS} players</span>
       </div>
     </div>
     <div class="card stack">
@@ -175,7 +188,7 @@ function setupView() {
       <select id="first" class="sel" data-input="first">
         ${d.players.map((p, i) => `<option value="${i}" ${+d.first === i ? 'selected' : ''}>${esc(p.name || `Player ${i + 1}`)}</option>`).join('')}
       </select>
-      <button class="btn primary block" data-act="begin">Start the election</button>
+      <button class="btn primary block" data-act="begin">Begin the opening draw</button>
       <button class="btn block" data-act="tab" data-v="rules">Read the rules</button>
     </div>
   </section>`;
@@ -482,9 +495,31 @@ function sheet() {
   </div></div>`;
 }
 
+// ---------- landing ----------
+const LOGO = `<svg class="landing-logo" viewBox="0 0 512 512" role="img" aria-label="Path to Presidency logo">
+  <rect width="512" height="512" rx="112" fill="#14213a"/>
+  <path d="M256 92l38 116h122l-99 72 38 116-99-72-99 72 38-116-99-72h122z" fill="#f3f5f9"/>
+  <rect x="96" y="420" width="320" height="22" rx="11" fill="#d33a3a"/>
+  <rect x="96" y="420" width="160" height="22" rx="11" fill="#2f63d6"/>
+</svg>`;
+
+function landingView() {
+  return `<section class="landing">
+    <div class="landing-inner">
+      ${LOGO}
+      <h1>Path to Presidency</h1>
+      <button class="btn start" data-act="to-setup">Start election</button>
+    </div>
+  </section>`;
+}
+
 // ---------- render ----------
 function render() {
   const g = store.game;
+  if (!g && store.screen === 'landing' && store.tab !== 'rules') {
+    $app.innerHTML = landingView();
+    return;
+  }
   let body;
   if (store.tab === 'rules') body = rulesView();
   else if (!g) body = setupView();
@@ -516,7 +551,8 @@ $app.addEventListener('click', (e) => {
     case 'menu': store.sheet = 'menu'; render(); break;
     case 'close': store.sheet = null; render(); break;
     case 'new': store.sheet = 'menu'; render(); break;
-    case 'confirm-new': store.game = null; store.history = []; store.sheet = null; store.tab = 'play'; store.selected = null; save(); render(); break;
+    case 'confirm-new': store.game = null; store.history = []; store.sheet = null; store.tab = 'play'; store.screen = 'landing'; store.selected = null; save(); render(); window.scrollTo(0, 0); break;
+    case 'to-setup': store.screen = 'setup'; store.tab = 'play'; render(); window.scrollTo(0, 0); break;
     case 'add': {
       const free = PALETTE.find((c) => !d.players.some((p) => p.color === c.hex));
       d.players.push({ name: '', color: free.hex }); save(); render();
