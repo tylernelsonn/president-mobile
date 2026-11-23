@@ -2,7 +2,7 @@
 import * as G from './game.js';
 import { STATES, STATE_CODES, COUNTRIES, PALETTE, MAX_PLAYERS, ev, stateName, WIN_EV } from './data.js';
 import { renderMap, textOn, edge } from './map.js';
-import { RULES } from './rules.js';
+import { RULES, DEDICATION } from './rules.js';
 
 const SAVE_KEY = 'presidente.save.v1';
 const THEME_KEY = 'presidente.theme';
@@ -143,7 +143,8 @@ function header() {
   const g = store.game;
   const sub = g ? (g.phase === 'initial' ? 'Opening draw' : g.phase === 'over' ? 'Final' : `Round ${g.round}`) : 'New game';
   return `<header class="top">
-    <h1 class="brand">Path to Presidency<small>${sub}</small></h1>
+    <img class="top-logo" src="icons/logo.svg" alt="" width="58" height="49">
+    <h1 class="brand"><small>Path to Presidency</small>${sub}</h1>
     ${g ? `<button class="icon-btn" data-act="undo" ${store.history.length ? '' : 'disabled'} aria-label="Undo last action">${ICON.undo}<span class="lbl-text">Undo</span></button>` : ''}
     <button class="icon-btn" data-act="theme" aria-label="Switch theme (now ${getTheme()})">${ICON.theme}</button>
     ${g ? `<button class="icon-btn" data-act="menu" aria-label="Game menu">${ICON.menu}</button>` : ''}
@@ -168,15 +169,15 @@ function setupView() {
         <button data-act="up" data-i="${i}" aria-label="Move up" ${i === 0 ? 'disabled' : ''}>↑</button>
         <button data-act="remove" data-i="${i}" aria-label="Remove player" ${d.players.length <= 2 ? 'disabled' : ''}>✕</button>
       </div>
-      <div class="palette" role="group" aria-label="Piece colour for player ${i + 1}">
+      <div class="palette" role="group" aria-label="Party color for player ${i + 1}">
         ${PALETTE.map((c) => `<button data-act="color" data-i="${i}" data-v="${c.hex}" class="${edge(c.hex).trim()}" style="background:${c.hex}" aria-label="${c.name}" aria-pressed="${p.color === c.hex}" ${used.includes(c.hex) && p.color !== c.hex ? 'disabled' : ''}></button>`).join('')}
       </div>
     </div>`).join('');
   return `<section class="view">
     <div class="card">
-      <p class="eyebrow">Set up</p>
+      ${ribbon('Set up')}
       <h2 class="title">Pick your party</h2>
-      <p class="muted">Add everyone in clockwise seating order and choose the colour of their pieces.</p>
+      <p class="muted">Add everyone in clockwise seating order and choose the color of their coins and pawn.</p>
       <div>${rows}</div>
       <div class="row wrap" style="margin-top:12px">
         <button class="btn" data-act="add" ${d.players.length >= MAX_PLAYERS ? 'disabled' : ''}>+ Add player</button>
@@ -189,7 +190,7 @@ function setupView() {
         ${d.players.map((p, i) => `<option value="${i}" ${+d.first === i ? 'selected' : ''}>${esc(p.name || `Player ${i + 1}`)}</option>`).join('')}
       </select>
       <button class="btn primary block" data-act="begin">Begin the opening draw</button>
-      <button class="btn block" data-act="tab" data-v="rules">Read the rules</button>
+      <button class="btn block" data-act="tab" data-v="rules">Read the official rules</button>
     </div>
   </section>`;
 }
@@ -211,7 +212,7 @@ function cardPicker(g, { initialOnly = false } = {}) {
         const tag = ally ? `<br><span class="muted">${ally.id === p.id ? 'allied' : `${esc(ally.name)}'s ally`}</span>` : '';
         return `<button data-act="draw" data-v="${c}">${x.name}${tag}</button>`;
       }).join('')}
-      <button data-act="draw" data-v="STAY">Stay where you are</button>
+      <button data-act="draw" data-v="STAY">Stay in Place</button>
     </div>`;
   return `<div class="stack">
     ${specials}
@@ -244,7 +245,7 @@ function turnCard(g) {
         ${[8, 9, 10, 11, 12].map((n) => `<button data-act="roll" data-v="${n}">${n}</button>`).join('')}
       </div>`;
   } else if (mode === 'lose') {
-    action = `<p class="muted">${esc(p.name)} is ${p.loc === 'MX' || p.loc === 'CN' ? `on vacation in ${esc(locName(p.loc))}` : 'staying where they are'}. Turn ${5 - p.lost} of 4 lost.</p>
+    action = `<p class="muted">${esc(p.name)} is ${p.loc === 'MX' || p.loc === 'CN' ? `on vacation in ${esc(locName(p.loc))}` : 'on Stay in Place'}. Turn ${5 - p.lost} of 4 lost.</p>
       <button class="btn primary block" data-act="lose">Skip ${esc(p.name)}'s turn</button>`;
   } else if (mode === 'draw' || mode === 'stuckDraw') {
     action = `<p class="eyebrow">${mode === 'stuckDraw' ? 'Stuck for 4 turns: draw a card' : 'Seven! Draw a card'}</p>
@@ -281,7 +282,7 @@ function optionButton(o, i, act) {
     return `<button class="option" data-act="${act}" data-i="${i}"><span class="what"><b>Back into ${esc(stateName(o.code))}</b><span>Already yours · roll out of ${ev(o.code)}, no new votes</span></span><span class="ev">${ev(o.code)}</span></button>`;
   }
   if (o.type === 'country') {
-    return `<button class="option" data-act="${act}" data-i="${i}"><span class="what"><b>Go to ${esc(stateName(o.code))}</b><span>Allied · lose 4 turns, then take a free state on its border</span></span><span class="ev">${COUNTRIES[o.code].letter}</span></button>`;
+    return `<button class="option" data-act="${act}" data-i="${i}"><span class="what"><b>Go to ${esc(stateName(o.code))}</b><span>Allied · lose 4 turns, then take an open state on its border</span></span><span class="ev">${COUNTRIES[o.code].letter}</span></button>`;
   }
   if (o.type === 'start') {
     return `<button class="option" data-act="${act}" data-i="${i}"><span class="what"><b>Start in ${esc(stateName(o.code))}</b><span>Roll out of ${ev(o.code)}</span></span><span class="ev">${ev(o.code)}</span></button>`;
@@ -305,7 +306,7 @@ function upNext(g) {
 function mapCard(g, extra = '') {
   return `<div class="card stack">
     <div class="map-wrap" data-map>${renderMap({ owner: g.owner, players: g.players, currentId: g.phase === 'play' ? G.current(g).id : null, selected: store.selected })}</div>
-    <div class="legend">${G.activePlayers(g).map((p) => `<span>${swatch(p)}${esc(p.name)} <b>${G.votes(g, p.id)}</b></span>`).join('')}<span><span class="swatch" style="background:var(--free)"></span>Free ${G.freeStates(g).length}</span></div>
+    <div class="legend">${G.activePlayers(g).map((p) => `<span>${swatch(p)}${esc(p.name)} <b>${G.votes(g, p.id)}</b></span>`).join('')}<span><span class="swatch" style="background:var(--free)"></span>Open ${G.freeStates(g).length}</span></div>
     ${selectedInfo(g)}
     ${extra}
   </div>`;
@@ -316,7 +317,7 @@ function selectedInfo(g) {
   if (!c) return '';
   const o = g.owner[c];
   const owner = o ? G.player(g, o) : null;
-  return `<div class="row">${owner ? swatch(owner) : '<span class="swatch" style="background:var(--free)"></span>'}<span class="grow"><b>${esc(stateName(c))}</b> · ${ev(c)} votes</span><span class="muted">${owner ? `Won by ${esc(owner.name)}` : 'Free'}</span></div>`;
+  return `<div class="row">${owner ? swatch(owner) : '<span class="swatch" style="background:var(--free)"></span>'}<span class="grow"><b>${esc(stateName(c))}</b> · ${ev(c)} votes</span><span class="muted">${owner ? `Won by ${esc(owner.name)}` : 'Open'}</span></div>`;
 }
 
 // Map on top (phone) / wide on the left (tablet); controls under it / sticky on the right.
@@ -334,7 +335,7 @@ function playView() {
     const p = G.current(g);
     return layout(g, `<div class="card stack">
         <div class="turn-head">${swatch(p, 'lg')}<div class="grow"><p class="eyebrow" style="margin:0">Opening draw · ${((g.turn - g.firstTurn + g.order.length) % g.order.length) + 1} of ${g.order.length}</p><h2 class="title">${esc(p.name)}</h2></div></div>
-        <p class="muted" style="margin:0">Draw from the state deck and tap the state on the card. ${esc(p.name)} places a piece there.</p>
+        <p class="muted" style="margin:0">Draw from the state deck and tap the state on the card. ${esc(p.name)} places a coin and their pawn there.</p>
         ${cardPicker(g, { initialOnly: true })}
       </div>`);
   }
@@ -361,8 +362,8 @@ function roundEndView(g) {
   const early = g.roundEnd.early;
   const head = early
     ? `<h2 class="title">${esc(G.player(g, early.id).name)} can't catch up</h2>
-      <div class="notice">Even winning all ${early.freeStates} free state${early.freeStates > 1 ? 's' : ''} (${early.free} votes) would leave ${esc(G.player(g, early.id).name)} at ${early.votes + early.free}, below every other player. The round ends now.</div>
-      <p class="muted" style="margin:0">${esc(G.player(g, early.id).name)}'s states go back on the board. The free states stay free for the next round.</p>`
+      <div class="notice">Even winning all ${early.freeStates} open state${early.freeStates > 1 ? 's' : ''} (${early.free} votes) would leave ${esc(G.player(g, early.id).name)} at ${early.votes + early.free}, below every other player. The round ends now.</div>
+      <p class="muted" style="margin:0">${esc(G.player(g, early.id).name)}'s states go back on the board. The open states stay open for the next round.</p>`
     : `<h2 class="title">All 51 states are taken</h2>
       <p class="muted" style="margin:0">Votes counted. The lowest total is eliminated and their states go back on the board.</p>`;
   return layout(g, `<div class="card stack">
@@ -391,10 +392,12 @@ function overView(g) {
     <div class="card winner stack">
       <div class="stars">★ ★ ★</div>
       ${w ? `<div class="row" style="justify-content:center">${swatch(w, 'lg')}</div>
-        <h2 class="title">${esc(w.name)} is President</h2>
-        <p class="muted" style="margin:0">${G.votes(g, w.id)} electoral votes · Round ${g.round}</p>`
-      : `<h2 class="title">269 to 269. It's a tie!</h2>
-        <p class="muted" style="margin:0">Everyone is back in. Play the tiebreaker at the table: everyone rolls for each state, highest roll wins it, and the most votes after all 51 wins.</p>`}
+        <p class="winner-kicker">${G.votes(g, w.id)} electoral votes · Round ${g.round}</p>
+        <h2 class="title">${esc(w.name)}</h2>
+        <p class="winner-sub">is appointed President of the United States!</p>`
+      : `<p class="winner-kicker">269 to 269</p>
+        <h2 class="title">It's a tie!</h2>
+        <p class="winner-sub">Everyone is back in. Play the tiebreaker at the table: everyone rolls for each state, highest roll wins it, and the most votes after all 51 wins.</p>`}
       <button class="btn primary" data-act="new">New game</button>
     </div>
     ${mapCard(g)}
@@ -407,7 +410,7 @@ function statesCard(g) {
   const rows = STATE_CODES.map((c) => {
     const o = g.owner[c];
     const p = o ? G.player(g, o) : null;
-    return `<tr data-act="select" data-v="${c}"><td>${esc(STATES[c][0])}</td><td>${p ? `<span class="row">${swatch(p)}${esc(p.name)}</span>` : '<span class="muted">Free</span>'}</td><td class="r">${STATES[c][1]}</td></tr>`;
+    return `<tr data-act="select" data-v="${c}"><td>${esc(STATES[c][0])}</td><td>${p ? `<span class="row">${swatch(p)}${esc(p.name)}</span>` : '<span class="muted">Open</span>'}</td><td class="r">${STATES[c][1]}</td></tr>`;
   }).join('');
   const taken = 51 - G.freeStates(g).length;
   return `<details class="card states-card" id="states-list" ${store.statesOpen ? 'open' : ''}>
@@ -439,8 +442,8 @@ function scoresView() {
   };
   return `<section class="view">
     <div class="card">
-      <p class="eyebrow">${g.phase === 'over' ? 'Final scoreboard' : `Round ${g.round} · ${taken} of 51 states taken`}</p>
-      <h2 class="title">Scoreboard</h2>
+      ${ribbon('Scoreboard')}
+      <p class="eyebrow center">${g.phase === 'over' ? 'Final scoreboard' : `Round ${g.round} · ${taken} of 51 states taken`}</p>
       <p class="muted" style="margin:4px 0 0;font-size:13px">270 to win. A full bar means 270 votes.</p>
       <div>${act.map(row).join('')}${out.map((p) => row(p, 0)).join('')}</div>
     </div>
@@ -451,36 +454,70 @@ function scoresView() {
 function logView() {
   const g = store.game;
   return `<section class="view"><div class="card">
-    <p class="eyebrow">Game log</p>
+    ${ribbon('Game log')}
     ${g.log.length ? `<ul class="log">${g.log.map((l) => `<li><span class="rd">R${l.round}</span><span>${esc(l.text)}</span></li>`).join('')}</ul>` : '<p class="muted">Nothing yet.</p>'}
   </div></section>`;
 }
 
 // ---------- rules tab ----------
-function rulesView() {
-  const block = (b) => {
-    if (b.p) return `<p>${esc(b.p)}</p>`;
-    if (b.ex) return `<p class="rule-ex"><span>Example</span>${esc(b.ex)}</p>`;
-    if (b.list) return `<dl class="rule-list">${b.list.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>`;
-    if (b.sheet) {
-      const cell = (c) => (c.startsWith('•') ? `<td><b class="dot">•</b>${esc(c.slice(1))}</td>` : `<td>${esc(c)}</td>`);
-      return `<div class="sheet-wrap"><p class="eyebrow" style="margin:0 0 6px">Scoresheet</p><table class="scoresheet">
+// Escapes text, then turns **bold** into <b>.
+const rich = (t) => esc(t).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+const ribbon = (text, tag = 'h2') => `<div class="ribbon-wrap"><${tag} class="ribbon">${esc(text)}</${tag}></div>`;
+
+function ruleBlock(b) {
+  if (b.p) return `<p>${rich(b.p)}</p>`;
+  if (b.h) return `<h4 class="rule-h">${esc(b.h)}</h4>`;
+  if (b.ex) return `<div class="rule-ex"><span class="tag">Example</span>${[].concat(b.ex).map((t) => `<p>${rich(t)}</p>`).join('')}</div>`;
+  if (b.note) return `<p class="rule-note">${rich(b.note)}</p>`;
+  if (b.callout) return `<div class="callout"><b>${esc(b.callout.title)}</b><p>${rich(b.callout.text)}</p></div>`;
+  if (b.steps) return `<ol class="rule-steps">${b.steps.map(([lead, t]) => `<li>${lead ? `<b>${esc(lead)}</b> ` : ''}${rich(t)}</li>`).join('')}</ol>`;
+  if (b.stars) return `<ul class="rule-stars">${b.stars.map((t) => `<li>${rich(t)}</li>`).join('')}</ul>`;
+  if (b.tags) return `<dl class="rule-tags">${b.tags.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${rich(v)}</dd></div>`).join('')}</dl>`;
+  if (b.box) return `<div class="in-box">${b.box.map(([n, k, v]) => `<div><span class="count">${esc(n)}</span><span><b>${esc(k)}</b>${esc(v)}</span></div>`).join('')}</div>`;
+  if (b.seven) return `<div class="rule-seven"><span class="seven-badge" aria-hidden="true">7</span><p>${rich(b.seven)}</p></div>`;
+  if (b.vacation) {
+    return `<div class="vacation">${[['Canada', 'C'], ['Mexico', 'M'], ['Stay in Place', 'S']].map(([n, l]) =>
+      `<div class="vcard"><span class="vcard-name">${n}</span><span class="vcard-letter">${l}</span><span class="vcard-turns">−4 turns</span></div>`).join('')}</div>`;
+  }
+  if (b.sheet) {
+    const cell = (c) => {
+      if (c.startsWith('•')) return `<td><b class="dot">•</b>${esc(c.slice(1))}</td>`;
+      if (c === 'x') return '<td class="mark">×</td>';
+      if (/^[MCS]$/.test(c)) return `<td class="mark">${c}</td>`;
+      return `<td>${esc(c)}</td>`;
+    };
+    return `<div class="sheet-wrap"><table class="scoresheet">
         <thead><tr>${b.sheet.head.map((h) => `<th>${esc(h)}</th>`).join('')}</tr></thead>
-        <tbody>${b.sheet.rows.map((r) => `<tr>${r.map(cell).join('')}</tr>`).join('')}</tbody></table></div>`;
-    }
-    return '';
-  };
-  return `<section class="view">
-    <div class="card stack">
-      <p class="eyebrow">How to play</p>
-      <h2 class="title">Presidente rules</h2>
-      ${store.game ? '' : '<button class="btn" data-act="tab" data-v="play">← Back to setup</button>'}
+        <tbody>${b.sheet.rows.map((r) => `<tr>${r.map(cell).join('')}</tr>`).join('')}</tbody></table></div>
+      ${b.sheet.caption ? `<p class="caption">${esc(b.sheet.caption)}</p>` : ''}`;
+  }
+  return '';
+}
+
+function rulesView() {
+  const d = DEDICATION;
+  return `<section class="view rules">
+    <div class="card rules-cover stack">
+      <img class="rules-logo" src="icons/logo.svg" alt="Path to Presidency" width="156" height="131">
+      <p class="pill">Official rulebook</p>
+      <p class="race">The race to 270</p>
+      ${store.game ? '' : `<button class="btn" data-act="tab" data-v="play">← Back${store.screen === 'setup' ? ' to setup' : ''}</button>`}
       <nav class="rule-jump" aria-label="Jump to a section">${RULES.map((s) => `<a href="#rule-${s.id}" data-jump="rule-${s.id}">${esc(s.title)}</a>`).join('')}</nav>
     </div>
     ${RULES.map((s) => `<article class="card rule" id="rule-${s.id}">
-      <h3 class="rule-title">${esc(s.title)}</h3>
-      ${s.blocks.map(block).join('')}
+      ${ribbon(s.title, 'h3')}
+      ${s.blocks.map(ruleBlock).join('')}
     </article>`).join('')}
+    <article class="card dedication" id="rule-dedication">
+      ${ribbon(d.title, 'h3')}
+      <p class="ded-kicker">Dedicated to</p>
+      <p class="ded-name">${esc(d.name)}</p>
+      <p class="ded-role">${esc(d.role)}</p>
+      <p>${esc(d.story)}</p>
+      <p class="ded-quote">“${esc(d.quote.replace(/[“”]/g, ''))}”</p>
+      <p class="ded-ps">${esc(d.ps)}</p>
+      <p class="ded-sign">${esc(d.signoff)}<small>${esc(d.from)}</small></p>
+    </article>
   </section>`;
 }
 
@@ -496,19 +533,23 @@ function sheet() {
 }
 
 // ---------- landing ----------
-const LOGO = `<svg class="landing-logo" viewBox="0 0 512 512" role="img" aria-label="Path to Presidency logo">
-  <rect width="512" height="512" rx="112" fill="#14213a"/>
-  <path d="M256 92l38 116h122l-99 72 38 116-99-72-99 72 38-116-99-72h122z" fill="#f3f5f9"/>
-  <rect x="96" y="420" width="320" height="22" rx="11" fill="#d33a3a"/>
-  <rect x="96" y="420" width="160" height="22" rx="11" fill="#2f63d6"/>
-</svg>`;
-
 function landingView() {
   return `<section class="landing">
     <div class="landing-inner">
-      ${LOGO}
-      <h1>Path to Presidency</h1>
-      <button class="btn start" data-act="to-setup">Start election</button>
+      <p class="landing-stars" aria-hidden="true">★ ★ ★</p>
+      <h1 class="landing-title"><img class="landing-logo" src="icons/logo.svg" alt="Path to Presidency" width="156" height="131"></h1>
+      <p class="pill">Official scoring app</p>
+      <p class="race">The race to 270</p>
+      <p class="tagline">Roll the dice <span>★</span> Claim the states<br>Win the White House</p>
+      <div class="landing-actions">
+        <button class="btn start" data-act="to-setup">Start election</button>
+        <button class="btn ghost" data-act="tab" data-v="rules">Official rules</button>
+      </div>
+      <div class="landing-foot">
+        <span class="sticker vote" aria-hidden="true">Vote!</span>
+        <span class="players">2 – 6 players</span>
+        <span class="sticker votes" aria-hidden="true">538<small>votes</small></span>
+      </div>
     </div>
   </section>`;
 }

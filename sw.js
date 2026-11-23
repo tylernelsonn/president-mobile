@@ -1,9 +1,10 @@
 // Offline cache for the app shell. Bump VERSION when files change.
-const VERSION = 'presidente-v13';
+const VERSION = 'presidente-v14';
 const SHELL = [
   './', 'index.html', 'manifest.webmanifest', 'css/app.css',
   'js/app.js', 'js/game.js', 'js/data.js', 'js/map.js', 'js/map-paths.js', 'js/rules.js',
-  'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png',
+  'icons/icon.svg', 'icons/logo.svg', 'icons/icon-192.png', 'icons/icon-512.png',
+  'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png',
 ];
 
 self.addEventListener('install', (e) => {
@@ -21,7 +22,10 @@ self.addEventListener('fetch', (e) => {
   e.respondWith(
     fetch(e.request)
       .then((res) => {
-        if (res.ok && new URL(e.request.url).origin === location.origin) {
+        const url = new URL(e.request.url);
+        // Cache the app's own files, and the Google Fonts the theme uses so they work offline too.
+        const font = url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com';
+        if ((res.ok && url.origin === location.origin) || (font && (res.ok || res.type === 'opaque'))) {
           const copy = res.clone();
           caches.open(VERSION).then((c) => c.put(e.request, copy));
         }

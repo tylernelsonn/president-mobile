@@ -1,6 +1,6 @@
 # Path to Presidency
 
-**Path to Presidency** is a phone companion app for the **Presidente** board game. One scorekeeper runs it
+**Path to Presidency** is the free scoring app for the **Path to Presidency** board game. One scorekeeper runs it
 at the table. It replaces the paper scoresheet and tracks:
 
 - **Players.** 2–6 players, each with a piece colour: red, blue, green, yellow, white or black.
@@ -8,7 +8,7 @@ at the table. It replaces the paper scoresheet and tracks:
 - **Who won each state.** On the Play screen: a live electoral map colored by each player's piece color, plus a full state-by-state list.
 - **Scoreboard.** Votes per player, distance to 270, current state, votes left to roll out, lost turns, stuck status and alliances.
 - **Rounds.** Round end at 51 states or as soon as someone can't catch up, elimination (with tie roll-off), the highest scorer going first, and choosing starting states.
-- **Rules tab** with the full rules and scoresheet examples, also reachable from the setup screen.
+- **Rules tab** with the Official Rulebook, scoresheet examples and the dedication card, also reachable from the landing and setup screens.
 - **Undo** for any action, **dark mode**, and auto-save so a refresh doesn't lose the game.
 
 It's an installable web app (PWA). Open it in your phone's browser and use
@@ -54,14 +54,23 @@ completion.
 | `js/game.js` | Rules engine: pure functions, `state -> new state` |
 | `js/map.js` | SVG map renderer |
 | `js/map-paths.js` | State shapes generated from `us-atlas@3.0.1` (US Census, public domain) |
-| `js/rules.js` | The game rules shown on the Rules tab, from `Presidente.docx` |
+| `js/rules.js` | The game rules shown on the Rules tab, from the Official Rulebook |
 | `js/app.js` | UI, persistence, undo |
-| `css/app.css` | Styles, light and dark themes |
+| `css/app.css` | Styles, light and dark themes, using the board game's colors and type |
+| `icons/logo.svg` | The Path to Presidency badge, taken from the card back artwork |
 | `sw.js`, `manifest.webmanifest` | Offline support and home-screen install |
+
+## Theme
+
+The look comes from the physical game (box, board, cards and rulebook):
+
+- **Colors:** navy `#1d3557`, cream `#f6ecd2`, red `#c8102e`, gold `#f0b13b`. Light mode is the cream rulebook page; dark mode is the navy box.
+- **Type:** Alfa Slab One for big words and numbers, Oswald for labels and headings, Inter for body text (Google Fonts, cached for offline use).
+- **The map stays a blank board:** open states are parchment on a blue sea, and each state takes the color of the player who claims it.
 
 ## How the rules are applied
 
-These follow `Presidente.docx`. Where the rules left room for interpretation,
+These follow the Official Rulebook. Where the rules left room for interpretation,
 the app does this:
 
 - **Board connections.** Real land borders, plus the Tricky States: Alaska ↔ Hawaii, Alaska/Hawaii ↔ the West Coast (WA, OR, CA), D.C. ↔ MD/VA/WV, Utah ↔ New Mexico, Arizona ↔ Colorado, and no New Jersey ↔ Connecticut.

@@ -1,4 +1,4 @@
-// Presidente rules engine. Every action takes a state and returns a new state
+// Path to Presidency rules engine. Every action takes a state and returns a new state
 // (the input is never mutated), so the UI can keep an undo stack of snapshots.
 
 import { STATES, ADJ, BORDERS, COUNTRIES, ev, stateName, WIN_EV } from './data.js';
@@ -291,7 +291,7 @@ export function draw(prev, card) {
     p.stuck = null;
     if (!isCountry(p.loc)) p.remaining = ev(p.loc);
     p.sheet.push({ t: 'S', dot: false });
-    note(s, `${p.name} drew Stay Where You Are: loses ${LOST_TURNS} turns, ${label(p.loc)} resets`);
+    note(s, `${p.name} drew Stay in Place: loses ${LOST_TURNS} turns, ${label(p.loc)} resets`);
   } else {
     throw new Error('Unknown card.');
   }

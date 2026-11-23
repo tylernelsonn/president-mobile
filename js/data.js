@@ -1,4 +1,4 @@
-// Static board data for Presidente: states, electoral votes and adjacency.
+// Static board data for Path to Presidency: states, electoral votes and adjacency.
 
 // Electoral votes, 2024–2032 apportionment. Sums to 538.
 export const STATES = {
