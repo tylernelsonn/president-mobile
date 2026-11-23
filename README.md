@@ -58,6 +58,7 @@ completion.
 | `js/app.js` | UI, persistence, undo |
 | `css/app.css` | Styles, light and dark themes, using the board game's colors and type |
 | `icons/logo.svg` | The Path to Presidency badge, taken from the card back artwork |
+| `icons/favicon.svg` | The browser-tab icon: the capitol dome, simple enough to read at 16px |
 | `sw.js`, `manifest.webmanifest` | Offline support and home-screen install |
 
 ## Theme

@@ -1,10 +1,11 @@
 // Offline cache for the app shell. Bump VERSION when files change.
-const VERSION = 'presidente-v14';
+const VERSION = 'presidente-v15';
 const SHELL = [
   './', 'index.html', 'manifest.webmanifest', 'css/app.css',
   'js/app.js', 'js/game.js', 'js/data.js', 'js/map.js', 'js/map-paths.js', 'js/rules.js',
   'icons/icon.svg', 'icons/logo.svg', 'icons/icon-192.png', 'icons/icon-512.png',
   'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png',
+  'icons/favicon.svg', 'icons/favicon-32.png', 'icons/favicon-48.png',
 ];
 
 self.addEventListener('install', (e) => {
